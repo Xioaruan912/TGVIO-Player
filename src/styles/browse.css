@@ -14,16 +14,16 @@
 .library-segments > .library-segment { position: relative; z-index: 1; min-height: 38px; min-width: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: transparent; box-shadow: none; color: var(--text-secondary); font-size: 13px; font-weight: 650; transition: color var(--dur-base) var(--ease); }
 .library-segments > .library-segment[aria-pressed="true"] { color: var(--accent-ink); background: transparent; border-color: transparent; }
 .library-button { min-height: 44px; min-width: 44px; padding: 8px 16px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: var(--glass); color: var(--text); font-size: 13px; font-weight: 600; line-height: 20px; touch-action: manipulation; box-shadow: var(--glass-edge); }
-.library-toolbar > .library-button[aria-pressed="true"] { background: var(--primary-soft); border-color: rgba(182, 156, 255, .45); color: var(--primary-bright); }
+.library-toolbar > .library-button[aria-pressed="true"] { background: var(--primary-soft); border-color: rgba(227, 192, 106, .45); color: var(--primary-bright); }
 .library-toolbar > .library-select-toggle { margin-left: auto; display: flex; align-items: center; }
 .library-select-toggle[aria-pressed="true"] { background-image: var(--accent-fill); color: var(--accent-ink); border-color: transparent; box-shadow: var(--accent-glow); }
 .library-date-label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; color: var(--text-secondary); }
-.library-date-input { min-width: 0; max-width: 100%; min-height: 44px; padding: 6px 14px; border: 1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-light); color: var(--text); font-size: 16px; color-scheme: dark; accent-color: #8b5cf6; }
+.library-date-input { min-width: 0; max-width: 100%; min-height: 44px; padding: 6px 14px; border: 1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-light); color: var(--text); font-size: 16px; color-scheme: dark; accent-color: #a8781f; }
 .library-notice { margin: 0; padding: 0 20px 12px; color: var(--text-muted); font-size: 12px; line-height: 1.7; flex: none; overflow-wrap: anywhere; }
 .library-selection { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 12px 10px; padding: 10px 12px; border: 1px solid var(--glass-border); border-radius: var(--radius-lg); background: var(--glass-strong); box-shadow: var(--glass-edge), var(--shadow-card); flex: none; animation: pop-in var(--dur-base) var(--ease-spring) backwards; }
 .library-selection > .library-button:first-child { border-color: transparent; color: var(--accent-ink); }
 .library-selection:empty { display: none; }
-.library-list, .long-list { flex: 1; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 20px 28px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: rgba(182, 156, 255, .35) transparent; }
+.library-list, .long-list { flex: 1; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 20px 28px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: rgba(227, 192, 106, .35) transparent; }
 .library-list.cover-grid { align-content: start; }
 /* auto-fit so a short directory list fills its row instead of reserving a
    phantom trailing column. Cover grids stay on auto-fill on purpose: stretching
@@ -44,7 +44,7 @@
 .long-list { display: grid; gap: 28px; align-content: start; padding-top: 16px; }
 .long-resume-section, .long-library-section { display: grid; min-width: 0; gap: 14px; align-content: start; }
 .long-resume-heading, .long-library-heading { margin: 0; font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
-.long-resume-heading::before { content: ""; display: inline-block; width: 4px; height: 16px; margin-right: 10px; vertical-align: -2px; border-radius: 4px; background: var(--accent-fill); box-shadow: 0 0 10px rgba(232, 121, 249, .6); }
+.long-resume-heading::before { content: ""; display: inline-block; width: 4px; height: 16px; margin-right: 10px; vertical-align: -2px; border-radius: 4px; background: var(--accent-fill); box-shadow: 0 0 10px rgba(240, 200, 100, .6); }
 /* The section that can empty itself owns the control that empties it. */
 .long-resume-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
 .long-resume-clear { flex: none; min-height: 44px; padding: 0 16px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: var(--glass); color: var(--text-secondary); font-size: 13px; font-weight: 600; }
@@ -54,7 +54,7 @@
    visible without reading: a pressed pill is the state, not a checkmark to hunt. */
 .filter-sheet { display: grid; gap: 12px; min-width: 0; }
 .filter-dates { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.filter-input { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 6px 12px; border: 1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-light); color: var(--text); font-size: 16px; color-scheme: dark; accent-color: #8b5cf6; }
+.filter-input { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 6px 12px; border: 1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-light); color: var(--text); font-size: 16px; color-scheme: dark; accent-color: #a8781f; }
 .filter-dash { flex: none; color: var(--text-muted); font-size: 13px; }
 .filter-tri { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; }
 .filter-tri-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
@@ -83,7 +83,7 @@
 }
 @media (hover: hover) {
   .library-button:not(:disabled):not(.library-segment):hover, .long-resume-clear:not(:disabled):hover, .browse-back:hover { background: var(--glass-hover); border-color: var(--glass-border-strong); }
-  .library-index-row:not(:disabled):hover { translate: 0 -3px; border-color: rgba(182, 156, 255, .45); }
+  .library-index-row:not(:disabled):hover { translate: 0 -3px; border-color: rgba(227, 192, 106, .45); }
   .filter-tri-button:not([aria-pressed="true"]):hover { color: var(--text); }
 }
 
@@ -99,5 +99,5 @@
 .collection-row-builtin .collection-row-kind { background-image: var(--accent-fill); color: var(--accent-ink); }
 .collection-name-form { display: grid; gap: 8px; }
 .collection-row-rules { grid-column: 1 / -1; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
-.collection-create-smart { border-color: rgba(182, 156, 255, .45); color: var(--primary-bright); }
-@media (hover: hover) { .collection-row:hover { translate: 0 -2px; border-color: rgba(182, 156, 255, .45); background: var(--glass-hover); } }
+.collection-create-smart { border-color: rgba(227, 192, 106, .45); color: var(--primary-bright); }
+@media (hover: hover) { .collection-row:hover { translate: 0 -2px; border-color: rgba(227, 192, 106, .45); background: var(--glass-hover); } }

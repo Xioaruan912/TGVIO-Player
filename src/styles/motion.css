@@ -100,21 +100,16 @@
 .cover-grid > .cover-tile:nth-child(10) { animation-delay: 270ms; }
 .cover-grid > .cover-tile:nth-child(11) { animation-delay: 300ms; }
 .cover-grid > .cover-tile:nth-child(n+12) { animation-delay: 330ms; }
-/* Where the browser can tie motion to scroll, later tiles rise as they enter. */
-@supports (animation-timeline: view()) {
-  .cover-grid > .cover-tile:nth-child(n+13) {
-    animation: rise-in linear both;
-    animation-delay: 0s;
-    animation-timeline: view();
-    animation-range: entry 0% entry 60%;
-  }
-}
+/* Tiles past the first screen arrive without an entrance: a scroll-driven entrance
+   recalculated every tile's style on every scrolled frame (measured ~2x main-thread
+   time while scrolling a library page under 4x CPU throttling). */
+.cover-grid > .cover-tile:nth-child(n+13) { animation: none; }
 @media (hover: hover) {
   .cover-tile-media { transform: perspective(700px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform var(--dur-base) var(--ease-spring-soft), box-shadow var(--dur-base) var(--ease); }
   .cover-tile[data-spotlight="on"] .cover-tile-media { transition-duration: 90ms; }
   .cover-tile-media::after {
     content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-    background: radial-gradient(220px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(233, 227, 255, .22), transparent 62%);
+    background: radial-gradient(220px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(250, 236, 200, .22), transparent 62%);
     opacity: 0; transition: opacity var(--dur-fast) var(--ease);
   }
   .cover-tile[data-spotlight="on"] .cover-tile-media::after { opacity: 1; }
@@ -140,13 +135,13 @@
 
 /* ── 7. Effects layer spawned by fx.ts (like burst, tap ripple). ────────── */
 .fx-burst { position: fixed; z-index: 90; width: 0; height: 0; pointer-events: none; }
-.fx-burst-heart { position: absolute; left: -36px; top: -36px; width: 72px; height: 72px; display: grid; place-items: center; color: var(--favorite); filter: drop-shadow(0 6px 18px rgba(255, 122, 182, .55)); animation: fx-heart 720ms var(--ease-out-quint) both; }
+.fx-burst-heart { position: absolute; left: -36px; top: -36px; width: 72px; height: 72px; display: grid; place-items: center; color: var(--favorite); filter: drop-shadow(0 6px 18px rgba(255, 107, 129, .55)); animation: fx-heart 720ms var(--ease-out-quint) both; }
 @keyframes fx-heart { 0% { opacity: 0; transform: scale(.3) rotate(-14deg); } 30% { opacity: 1; transform: scale(1.25) rotate(6deg); } 60% { transform: scale(.95) rotate(0deg); } 100% { opacity: 0; transform: translateY(-46px) scale(1.05); } }
 .fx-burst-ring { position: absolute; left: -30px; top: -30px; width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--favorite); animation: fx-ring 560ms var(--ease-out-quint) both; }
 @keyframes fx-ring { from { opacity: .9; transform: scale(.3); } to { opacity: 0; transform: scale(1.6); border-width: 0; } }
 .fx-burst-dot { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--dot-color, var(--favorite)); animation: fx-dot 640ms var(--ease-out-quint) both; }
 @keyframes fx-dot { from { opacity: 1; transform: rotate(var(--angle)) translateY(0) scale(1); } to { opacity: 0; transform: rotate(var(--angle)) translateY(calc(var(--dist) * -1)) scale(.3); } }
-.fx-ripple { position: absolute; z-index: 6; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; background: radial-gradient(circle, rgba(233, 227, 255, .28), rgba(182, 156, 255, .10) 55%, transparent 70%); pointer-events: none; animation: fx-ripple 620ms var(--ease-out-quint) both; }
+.fx-ripple { position: absolute; z-index: 6; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; background: radial-gradient(circle, rgba(250, 236, 200, .28), rgba(227, 192, 106, .10) 55%, transparent 70%); pointer-events: none; animation: fx-ripple 620ms var(--ease-out-quint) both; }
 @keyframes fx-ripple { from { opacity: 1; transform: scale(.2); } to { opacity: 0; transform: scale(1.6); } }
 
 @media (prefers-reduced-motion: reduce) {

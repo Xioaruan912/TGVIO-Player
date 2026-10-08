@@ -113,10 +113,10 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, rgba(139, 92, 246, 0) 0deg, #8b5cf6 120deg, #e879f9 250deg, #ff7ab6 340deg, rgba(255, 122, 182, 0) 360deg);
+  background: conic-gradient(from 0deg, rgba(168, 120, 31, 0) 0deg, #a8781f 120deg, #e6c35c 250deg, #ff6b81 340deg, rgba(255, 107, 129, 0) 360deg);
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-  filter: drop-shadow(0 0 8px rgba(232, 121, 249, 0.55));
+  filter: drop-shadow(0 0 8px rgba(240, 200, 100, 0.55));
 
   animation: media-ring-turn .9s linear infinite;
   /* `visibility: hidden` does not stop an animation, and in a full feed nineteen of

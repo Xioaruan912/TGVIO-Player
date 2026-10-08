@@ -18,7 +18,7 @@
 .storage-field { display: grid; gap: 8px; color: var(--text-secondary); font-size: 13px; font-weight: 600; }
 .storage-field input { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--glass-border); border-radius: var(--radius); background: rgba(255, 255, 255, .05); color: var(--text); font-size: 16px; transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
 .storage-field input::placeholder { color: var(--text-muted); }
-.storage-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(182, 156, 255, .2); }
+.storage-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(227, 192, 106, .2); }
 .storage-settings-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 .storage-settings-actions button { flex: 1 1 120px; }
 .storage-settings-actions button[type="submit"] { border-color: transparent; color: var(--accent-ink); }

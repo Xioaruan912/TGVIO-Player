@@ -9,7 +9,7 @@ import { motionAllowed } from "../motion";
  * an effect that fails to run changes nothing.
  */
 
-const DOT_COLORS = ["#ff7ab6", "#e879f9", "#b69cff", "#f9a8d4", "#ffffff"];
+const DOT_COLORS = ["#ff6b81", "#e6c35c", "#e3c06a", "#f3d9a0", "#ffffff"];
 
 function selfRemoving(node: HTMLElement, ms: number): HTMLElement {
   node.setAttribute("aria-hidden", "true");

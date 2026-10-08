@@ -60,9 +60,11 @@ test("12px metadata keeps WCAG AA contrast on every surface it sits on", () => {
   assert.ok(contrast("#ffffff", tokens["danger-fill"]) >= 4.5, "white on the filled danger action");
 });
 
-test("white ink clears AA on every stop of the accent gradient", () => {
+test("the accent ink clears AA on every stop of the accent gradient", () => {
   // A label on a gradient is only as legible as its weakest stop; axe cannot evaluate
   // gradient backgrounds, so the declared stops are checked instead.
+  // On gold the ink is near-black; white would fail, so it must never be the ink.
+  assert.ok(contrast("#ffffff", stops(tokens["accent-fill"])[0]) < 4.5, "white is not a legible ink on the gold");
   const accent = stops(tokens["accent-fill"]);
   assert.ok(accent.length >= 3, "the accent gradient declares its stops");
   for (const stop of accent) {
@@ -118,6 +120,17 @@ test("the motion scale is spring based and collapses under reduced motion", () =
   // Motion and the glass layer come after the component shorthands they override.
   assert.ok(styleEntry.indexOf("motion.css") > styleEntry.indexOf("settings.css"));
   assert.ok(styleEntry.indexOf("glass.css") > styleEntry.indexOf("motion.css"));
+});
+
+test("scrolling a cover grid runs no per-frame style work", () => {
+  // Scroll-driven tile entrances doubled main-thread time while scrolling, and a
+  // background-position shimmer repaints every frame; both are compositor-free now.
+  assert.doesNotMatch(motionCss, /animation-timeline:\s*view\(\)/);
+  // Every loading tile running its own infinite animation measured ~0.7s of main
+  // thread per 5s of scrolling, so the loading state carries no animation at all.
+  const loading = rules(source("styles/cover.css")).filter((rule) => rule.selector.includes('data-cover-state="loading"'));
+  assert.ok(loading.length > 0, "the loading state is styled");
+  assert.ok(loading.every((rule) => !/animation/.test(rule.body)), "no animation on loading covers");
 });
 
 test("entrances never leave a transform behind", () => {

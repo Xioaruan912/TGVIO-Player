@@ -1,5 +1,5 @@
 /* Favorites, settings and choices share one accessible glass sheet. */
-.sheet { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; background: rgba(6, 5, 11, .55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: fade-in var(--dur-base) var(--ease) backwards; }
+.sheet { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; background: rgba(6, 5, 3, .55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: fade-in var(--dur-base) var(--ease) backwards; }
 .sheet-card { width: 100%; max-height: 90dvh; display: flex; flex-direction: column; border: 1px solid var(--glass-border); border-bottom: 0; border-radius: var(--radius-panel) var(--radius-panel) 0 0; overflow: hidden; background: var(--glass-strong); box-shadow: var(--glass-edge), 0 -20px 70px rgba(0, 0, 0, .6); }
 /* The arrival itself is animated by dialog.ts (animateArrival), once per opening. */
 .sheet-handle { width: 44px; height: 5px; flex: none; margin: 10px auto 0; border-radius: 3px; background: rgba(255, 255, 255, .28); }
@@ -29,7 +29,7 @@ button.sheet-row:active { background: var(--glass-hover); }
 .sheet-row-sub { font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
 .sheet-row-note { font-size: 11px; line-height: 1.5; color: var(--text-muted); }
 .sheet-choice-mark { width: 26px; height: 26px; display: grid; place-items: center; flex: none; border: 2px solid var(--glass-border-strong); border-radius: 50%; color: var(--accent-ink); font-weight: 800; transition: scale var(--dur-base) var(--ease-spring); }
-.sheet-row-choice[aria-pressed="true"] { border-color: rgba(182, 156, 255, .55); background: var(--primary-soft); }
+.sheet-row-choice[aria-pressed="true"] { border-color: rgba(227, 192, 106, .55); background: var(--primary-soft); }
 .sheet-row-choice[aria-pressed="true"] .sheet-choice-mark { border-color: transparent; background-image: var(--accent-fill); box-shadow: var(--accent-glow); scale: 1.08; }
 .sheet-row-icon { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border-radius: 12px; color: var(--accent-ink); background-image: var(--accent-fill); }
 .sheet-row-heart { display: grid; place-items: center; min-width: 20px; color: var(--favorite); }
@@ -38,7 +38,7 @@ button.sheet-row:active { background: var(--glass-hover); }
 .sheet-empty-sub { margin: 0; max-width: 22em; font-size: 13px; line-height: 1.7; color: var(--text-secondary); }
 .switch { position: relative; width: 46px; height: 28px; flex: none; border-radius: 999px; background: rgba(255, 255, 255, .16); transition: background var(--dur-fast) var(--ease); }
 .switch-knob { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .4); transition: transform var(--dur-slow) var(--ease-spring); }
-.sheet-row-toggle[aria-checked="true"] .switch { background-image: var(--accent-fill); box-shadow: 0 0 14px rgba(162, 28, 175, .5); }
+.sheet-row-toggle[aria-checked="true"] .switch { background-image: var(--accent-fill); box-shadow: 0 0 14px rgba(201, 162, 39, .5); }
 .sheet-row-toggle[aria-checked="true"] .switch-knob { transform: translateX(18px); }
 @media (min-width: 900px) {
   .sheet { align-items: stretch; justify-content: flex-end; padding: 16px; }
@@ -46,7 +46,7 @@ button.sheet-row:active { background: var(--glass-hover); }
   .sheet-handle { display: none; }
   .sheet-head { padding: 22px 24px; }
 }
-@media (hover: hover) { button.sheet-row:hover { border-color: rgba(182, 156, 255, .45); background: var(--glass-hover); } .sheet-close:hover { background: var(--glass-hover); } }
+@media (hover: hover) { button.sheet-row:hover { border-color: rgba(227, 192, 106, .45); background: var(--glass-hover); } .sheet-close:hover { background: var(--glass-hover); } }
 
 .sheet-row-arrow { flex: none; font-size: 22px; line-height: 24px; color: var(--text-muted); transition: translate var(--dur-base) var(--ease-spring); }
 @media (hover: hover) { button.sheet-row:hover .sheet-row-arrow { translate: 4px 0; color: var(--primary); } }

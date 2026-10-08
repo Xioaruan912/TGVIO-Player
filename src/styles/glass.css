@@ -7,9 +7,9 @@
 .app-shell, .browse-page, .large-player, .login-shell {
   background-color: var(--bg);
   background-image:
-    radial-gradient(60% 45% at 12% -8%, rgba(124, 58, 237, 0.22), transparent 70%),
-    radial-gradient(50% 40% at 100% 4%, rgba(190, 24, 93, 0.16), transparent 70%),
-    radial-gradient(70% 50% at 50% 110%, rgba(162, 28, 175, 0.14), transparent 72%);
+    radial-gradient(60% 45% at 12% -8%, rgba(168, 120, 31, 0.22), transparent 70%),
+    radial-gradient(50% 40% at 100% 4%, rgba(120, 78, 20, 0.16), transparent 70%),
+    radial-gradient(70% 50% at 50% 110%, rgba(201, 162, 39, 0.14), transparent 72%);
   background-repeat: no-repeat;
 }
 

@@ -32,7 +32,7 @@
 .browse-page[data-density="dense"] .cover-tile-subtitle,
 .browse-page[data-density="dense"] .cover-tile-metadata > :not(.cover-tile-duration) { display: none; }
 .browse-page[data-density="dense"] .cover-tile-info { padding: 8px 8px 7px; }
-.browse-page[data-density="dense"] .cover-tile-scrim { background: linear-gradient(to bottom, transparent, rgba(10,8,18,.84) 22px, rgba(10,8,18,.95)); }
+.browse-page[data-density="dense"] .cover-tile-scrim { background: linear-gradient(to bottom, transparent, rgba(10,9,6,.84) 22px, rgba(10,9,6,.95)); }
 /* The hover play ring is 44px, which is more than half a dense tile. */
 .browse-page[data-density="dense"] .cover-tile-hint { display: none; }
 .browse-page[data-density="dense"] .cover-tile-select { width: 44px; height: 44px; }
@@ -88,34 +88,36 @@
 .cover-tile[data-variant="wide"] .cover-tile-media { aspect-ratio: 16 / 9; }
 .cover-tile-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform var(--dur-slow) var(--ease-out-quint), filter var(--dur-base) var(--ease); }
 .cover-tile[data-cover-state="ready"] .cover-tile-image { animation: fade-in var(--dur-slow) var(--ease) backwards; }
-.cover-tile-fallback { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; background: linear-gradient(160deg, #1f1a30, #15121f 55%, #221327); color: var(--text-secondary); }
+.cover-tile-fallback { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; background: linear-gradient(160deg, #221d14, #15130f 55%, #1d1710); color: var(--text-secondary); }
 .cover-tile[data-cover-state="ready"] .cover-tile-fallback { display: none; }
 .cover-tile-fallback-mark { display: grid; justify-items: center; gap: 8px; transform: translateY(-22px); }
 .cover-tile-fallback-text { font-size: 12px; line-height: 1.5; }
 .cover-tile-fallback-mark > .icon { width: 28px; height: 28px; opacity: .7; }
-/* Loading is a moving sheen, so it never reads as a finished empty frame. */
-.cover-tile[data-cover-state="loading"] .cover-tile-fallback { background: linear-gradient(100deg, #1a1625 30%, #2b2442 48%, #1a1625 66%); background-size: 200% 100%; animation: shimmer 1.5s linear infinite; }
+/* Loading is a still, warm placeholder with its own label. An infinite sweep on every
+   loading tile cost ~0.7s of main-thread time per 5s of scrolling (13 tiles at once),
+   so the state is told apart by colour and text, not motion. */
+.cover-tile[data-cover-state="loading"] .cover-tile-fallback { background: linear-gradient(160deg, #221d14, #1a1712 60%, #241c10); }
 .cover-tile[data-cover-state="failed"] .cover-tile-fallback-mark { transform: translateY(-60px); }
 /* The scrim follows real information height, including larger fonts, and fades
    only above it. Even a white frame stays readable without a full-cover wash. */
-.cover-tile-scrim { position: absolute; inset: auto 0 0; z-index: -1; height: calc(100% + 36px); background: linear-gradient(to bottom, transparent, rgba(10, 8, 18, .82) 34px, rgba(10, 8, 18, .95)); pointer-events: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
-.cover-tile-hint { position: absolute; left: 50%; top: 50%; z-index: 3; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; color: #fff; background-image: var(--accent-fill); box-shadow: var(--accent-glow); opacity: 0; transform: translate(-50%, -50%) scale(.6); transition: opacity var(--dur-fast) var(--ease), transform var(--dur-base) var(--ease-spring); pointer-events: none; }
+.cover-tile-scrim { position: absolute; inset: auto 0 0; z-index: -1; height: calc(100% + 36px); background: linear-gradient(to bottom, transparent, rgba(10, 9, 6, .82) 34px, rgba(10, 9, 6, .95)); pointer-events: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.cover-tile-hint { position: absolute; left: 50%; top: 50%; z-index: 3; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; color: var(--accent-ink); background-image: var(--accent-fill); box-shadow: var(--accent-glow); opacity: 0; transform: translate(-50%, -50%) scale(.6); transition: opacity var(--dur-fast) var(--ease), transform var(--dur-base) var(--ease-spring); pointer-events: none; }
 .cover-tile-info { position: absolute; inset: auto 0 0; z-index: 3; display: grid; gap: 5px; padding: 14px 12px 12px; color: #fff; pointer-events: none; min-width: 0; }
 .cover-tile-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px; line-height: 1.4; font-weight: 700; overflow-wrap: anywhere; }
 .cover-tile-metadata { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
-.cover-tile-duration { margin-left: auto; padding: 2px 7px; border: 1px solid rgba(255, 255, 255, .14); border-radius: var(--radius-pill); background: rgba(10, 8, 18, .55); color: #fff; font-size: 11px; font-weight: 650; line-height: 1.5; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cover-tile-duration { margin-left: auto; padding: 2px 7px; border: 1px solid rgba(255, 255, 255, .14); border-radius: var(--radius-pill); background: rgba(10, 9, 6, .55); color: #fff; font-size: 11px; font-weight: 650; line-height: 1.5; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cover-tile-duration[data-known="false"] { font-variant-numeric: normal; }
-.cover-tile-tag { padding: 1px 0; border-radius: 5px; background: transparent; color: #e9e3ff; font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap; }
-.cover-tile-subtitle { min-width: 0; font-size: 12px; line-height: 1.4; color: #e9e3ff; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cover-tile-tag { padding: 1px 0; border-radius: 5px; background: transparent; color: #faecc8; font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+.cover-tile-subtitle { min-width: 0; font-size: 12px; line-height: 1.4; color: #faecc8; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .cover-tile-progress { position: absolute; z-index: 4; inset: auto 0 0; height: 3px; border-radius: 0 0 var(--radius-lg) var(--radius-lg); background: rgba(255, 255, 255, .18); pointer-events: none; overflow: hidden; }
-.cover-tile-progress-fill { display: block; height: 100%; background: var(--progress-fill); box-shadow: 0 0 8px rgba(232, 121, 249, .8); }
-.cover-tile-favorite { position: absolute; z-index: 4; top: 10px; left: 10px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--favorite); background: rgba(10, 8, 18, .6); pointer-events: none; }
+.cover-tile-progress-fill { display: block; height: 100%; background: var(--progress-fill); box-shadow: 0 0 8px rgba(240, 200, 100, .8); }
+.cover-tile-favorite { position: absolute; z-index: 4; top: 10px; left: 10px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--favorite); background: rgba(10, 9, 6, .6); pointer-events: none; }
 .cover-tile-select { position: absolute; z-index: 5; top: 0; left: 0; display: grid; place-items: center; width: 48px; height: 48px; color: transparent; }
-.cover-tile-select-mark { display: grid; place-items: center; width: 26px; height: 26px; border: 2px solid #fff; border-radius: 50%; background: rgba(10, 8, 18, .55); transition: background var(--dur-fast) var(--ease), scale var(--dur-base) var(--ease-spring); }
-.cover-tile-select.is-selected { color: #fff; }
+.cover-tile-select-mark { display: grid; place-items: center; width: 26px; height: 26px; border: 2px solid #fff; border-radius: 50%; background: rgba(10, 9, 6, .55); transition: background var(--dur-fast) var(--ease), scale var(--dur-base) var(--ease-spring); }
+.cover-tile-select.is-selected { color: var(--accent-ink); }
 .cover-tile-select.is-selected .cover-tile-select-mark { border-color: transparent; background-image: var(--accent-fill); scale: 1.12; box-shadow: var(--accent-glow); }
 .cover-tile.is-select-mode .cover-tile-favorite { display: none; }
-.cover-tile.is-selected::after { content: ""; position: absolute; z-index: 4; inset: 0; border: 3px solid var(--primary); border-radius: var(--radius-lg); pointer-events: none; box-shadow: inset 0 0 0 1px rgba(10, 8, 18, .6), 0 0 22px rgba(182, 156, 255, .5); animation: pop-in var(--dur-base) var(--ease-spring) backwards; }
+.cover-tile.is-selected::after { content: ""; position: absolute; z-index: 4; inset: 0; border: 3px solid var(--primary); border-radius: var(--radius-lg); pointer-events: none; box-shadow: inset 0 0 0 1px rgba(10, 9, 6, .6), 0 0 22px rgba(227, 192, 106, .5); animation: pop-in var(--dur-base) var(--ease-spring) backwards; }
 .cover-tile-retry { position: absolute; z-index: 5; left: 50%; top: 40%; transform: translate(-50%, -50%); min-height: 48px; padding: 0 16px; border: 1px solid var(--glass-border-strong); border-radius: var(--radius-pill); background: var(--glass-strong); color: var(--text); font-size: 13px; font-weight: 650; white-space: nowrap; }
 .cover-tile[data-variant="wide"] .cover-tile-retry { left: 10px; top: 8px; transform: none; min-height: 44px; }
 .cover-tile[data-cover-state="failed"] .cover-tile-hint,
@@ -124,7 +126,7 @@
 @media (hover: hover) {
   .cover-tile-play:hover .cover-tile-image { transform: scale(1.06); filter: saturate(115%); }
   .cover-tile-play:hover .cover-tile-hint { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  .cover-tile-play:hover .cover-tile-media { box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(182, 156, 255, .35); }
+  .cover-tile-play:hover .cover-tile-media { box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(227, 192, 106, .35); }
   .cover-tile-retry:hover { background: var(--glass-hover); }
 }
 .cover-tile-play:focus-visible .cover-tile-hint { opacity: 1; transform: translate(-50%, -50%) scale(1); }

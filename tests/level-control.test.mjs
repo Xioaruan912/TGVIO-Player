@@ -10,6 +10,10 @@ const code = (await readFile(new URL("../.test-dist/components/level-control.js"
   .replace(/^import .* from .*;$/gm, "");
 globalThis.__level = deps;
 
+// Cases that read the hud text after awaiting the host keep it up long enough that a busy
+// machine cannot hide it first; 20ms readouts raced the awaited prompt and flaked.
+const READABLE_HUD = { hudMs: 1000 };
+
 // A fresh module instance per case: the levels are module scope on purpose (session wide),
 // so a shared instance would make these cases order dependent.
 let instances = 0;
@@ -107,7 +111,7 @@ test("a silent level leaves the element audible so the sound button cannot lie",
 });
 
 test("raising the volume while muted asks the host and honours a refusal", async () => {
-  const { control, video, stage, calls } = await make({ hudMs: 20 }, { requestAudio: async () => false });
+  const { control, video, stage, calls } = await make(READABLE_HUD, { requestAudio: async () => false });
   video.muted = true;
   control.start("volume"); control.move("volume", -0.8);
   await flush();
@@ -136,7 +140,7 @@ test("a muted drag asks once, not once per pointer move", async () => {
 });
 
 test("one refusal silences the rest of the gesture without asking again", async () => {
-  const { control, video, stage, calls } = await make({ hudMs: 20 }, { requestAudio: async () => false });
+  const { control, video, stage, calls } = await make(READABLE_HUD, { requestAudio: async () => false });
   video.muted = true;
   control.start("volume");
   control.move("volume", -0.1);

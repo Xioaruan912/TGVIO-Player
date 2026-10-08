@@ -29,7 +29,7 @@ const bytes=(await stat(mediaPath)).size,shortBytes=(await stat(shortPath)).size
 const fontPath="/mnt/c/Windows/Fonts/msyh.ttc";let hasCjkFont=false;try{hasCjkFont=(await stat(fontPath)).isFile();}catch{}
 let feedOffset=0;const favorites=new Set();const progress=new Map();const collections=new Map();const counters={requests:0,ranges:0,coverRequests:0,coverActive:0,coverPeak:0};
 // Session state for the idle-eject check: logout closes the API until a login.
-let sessionSignedOut=false;let logoutCalls=0;
+let sessionSignedOut=false;let readMode="webdav";let logoutCalls=0;
 const mediaById=new Map();
 const item=(index,category="short")=>{const id=createHash("sha256").update(`local-test-media-${category}-${index}`).digest("hex");const media={id,width:category==="long"?320:240,height:category==="long"?180:426,duration_seconds:category==="long"?120:18,size_bytes:category==="long"?bytes:shortBytes,mime_type:"video/mp4",codec:"h264",stream_url:`/__acceptance__/media/${category}-${index}.mp4`,cover_url:index%12===0?null:index%12===1?"/__acceptance__/cover/broken":`/__acceptance__/cover/${category}-${index%3}`,favorite:favorites.has(id),deletable:false,category,groups:[],variants:[]};mediaById.set(id,media);return media;};
 const libraryFixture=createLibraryFixture(item);
@@ -134,6 +134,11 @@ const server=await createServer({configFile:false,root:fileURLToPath(new URL("..
  if(pathname==="/api/v1/long-progress")return send({items:[...progress].map(([id,position_seconds])=>({id,position_seconds})),recent_items:[...progress].filter(([id])=>mediaById.has(id)).map(([id,position_seconds])=>({...mediaById.get(id),position_seconds}))});
  const match=/^\/api\/v1\/media\/([a-f0-9]+)\/(favorite|progress|prepare)$/.exec(pathname);
  if(match){const [,id,action]=match;if(action==="favorite"){req.method==="DELETE"?favorites.delete(id):favorites.add(id);return send({favorite:favorites.has(id),sync_status:"synced"});}if(action==="progress"){req.method==="DELETE"?progress.delete(id):progress.set(id,Number(body.position_seconds)||0);}return send({ok:true});}
+ if(pathname==="/api/v1/settings/read-mode"){
+  // A deliberate pause on a switch, so the loading state can actually be seen and checked.
+  if(req.method==="PUT"){const mode=body.mode;if(mode!=="webdav"&&mode!=="direct"){res.statusCode=400;return res.end("invalid read mode");}await new Promise(resolve=>setTimeout(resolve,400));readMode=mode;}
+  return send({mode:readMode,direct_available:true});
+ }
  if(pathname==="/api/v1/settings/storage")return send({endpoint_url:"",player_root:"player",favorites_dir:"favorites",storage_configured:false,credentials_configured:false,revision:1,sync_status:"synced",pending_count:0,failed_count:0,last_success_at:null});
  if(sessionSignedOut){res.statusCode=401;res.setHeader("Content-Type","text/plain; charset=utf-8");res.end("authentication required");return;}
  res.statusCode=404;send({error:"test_route_not_implemented"});

@@ -5,6 +5,7 @@ import { element, sheetNote, sheetRow, sheetSection, sheetToggle } from "../ui";
 import type { Clip, QualitySelection } from "../types";
 import type { NetworkMeter } from "../net";
 import { installController } from "../install";
+import { readModeLabel } from "./network-sheets";
 
 export type SettingsViewActions = {
   muted: boolean;
@@ -15,6 +16,7 @@ export type SettingsViewActions = {
   toggleSound(): void;
   openSettings(): void;
   openCacheModeSettings(): void;
+  openReadModeSettings(): void;
   openGestureGuide(): void;
   openStorageSettings(): void;
   setQuality(quality: QualitySelection): void;
@@ -30,7 +32,7 @@ export const SETTINGS_GROUP_ACCESS = "访问管理";
 /** Presentation only: playback, API and account effects stay with the application. */
 export function buildSettingsView(actions: SettingsViewActions): Node[] {
   const { muted, quality, currentClip, feedMeter, DEBUG, toggleSound, openSettings,
-    openCacheModeSettings, openGestureGuide, openStorageSettings, setQuality, logout } = actions;
+    openCacheModeSettings, openReadModeSettings, openGestureGuide, openStorageSettings, setQuality, logout } = actions;
   const body: Node[] = [];
 
   body.push(sheetSection(SETTINGS_GROUP_PLAYBACK));
@@ -147,6 +149,7 @@ export function buildSettingsView(actions: SettingsViewActions): Node[] {
     sub: cacheLabels[prefs.cacheMode],
     onPick: openCacheModeSettings,
   }));
+  body.push(sheetRow({ title: "读取方式", sub: readModeLabel(), onPick: openReadModeSettings }));
   body.push(
     sheetToggle(
       "显示缓存进度",

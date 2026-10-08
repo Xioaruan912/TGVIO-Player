@@ -1,4 +1,4 @@
-import type { LibraryCategory, LibraryDatesResponse, LibraryFoldersResponse, LibraryVideosResponse, LibraryVideosPage, ArchiveGroup, Clip, CollectionDto, CollectionPage, CollectionWriteResponse, CollectionsResponse, FeedResponse, GroupVideosResponse, LongVideoProgressResponse, MediaDto, PagedMediaResponse, PreloadLevel, RandomVideoListResponse, VideoListResponse } from "./types";
+import type { LibraryCategory, LibraryDatesResponse, LibraryFoldersResponse, LibraryVideosResponse, LibraryVideosPage, ArchiveGroup, Clip, CollectionDto, CollectionPage, CollectionWriteResponse, CollectionsResponse, FeedResponse, GroupVideosResponse, LongVideoProgressResponse, MediaDto, PagedMediaResponse, PreloadLevel, RandomVideoListResponse, ReadMode, ReadModeState, VideoListResponse } from "./types";
 import { toQuery, type LibraryFilters } from "./library-filters";
 
 export const MOCK_MODE = import.meta.env.VITE_PLAYER_MOCK === "true";
@@ -392,6 +392,18 @@ class PlayerApi {
     if (MOCK_MODE) return { ok: true, operation: null, category: "ok", status_code: null };
     return this.request<StorageTestDto>("/api/v1/settings/storage/test", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input),
+    });
+  }
+
+  async readMode(): Promise<ReadModeState> {
+    if (MOCK_MODE) return { mode: "webdav", direct_available: true };
+    return this.request<ReadModeState>("/api/v1/settings/read-mode");
+  }
+
+  async setReadMode(mode: ReadMode): Promise<ReadModeState> {
+    if (MOCK_MODE) return { mode, direct_available: true };
+    return this.request<ReadModeState>("/api/v1/settings/read-mode", {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode }),
     });
   }
 

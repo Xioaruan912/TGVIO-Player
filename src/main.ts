@@ -16,6 +16,7 @@ import { VideoLibraryPage } from "./library";
 import { LibraryPlayback } from "./library-playback";
 import { StorageSettingsPage } from "./settings-page";
 import { buildSettingsView } from "./views/settings-view";
+import { cacheModeChoices, createReadModeSheet } from "./views/network-sheets";
 import { ViewLifecycle } from "./views/view-lifecycle";
 import { LongVideoPage } from "./long";
 import { NetworkMeter } from "./net";
@@ -1375,7 +1376,7 @@ function openFavorites(): void {
 function openSettings(): void {
   if (!shell) return;
   const body = buildSettingsView({ muted, quality, currentClip: feedView?.clipAt(activeIndex) ?? null,
-    feedMeter, DEBUG, toggleSound, openSettings, openCacheModeSettings, openGestureGuide,
+    feedMeter, DEBUG, toggleSound, openSettings, openCacheModeSettings, openReadModeSettings, openGestureGuide,
     openStorageSettings, setQuality, logout: () => api.logout().finally(() => window.location.reload()) });
   openSheetKind = "settings";
   openSheet(shell, "设置", body);
@@ -1388,17 +1389,16 @@ installController.subscribe(() => {
 
 function openCacheModeSettings(): void {
   if (!shell) return;
-  const choices = [
-    ["auto", "智能（推荐）", "根据缓冲、卡顿和实测速率自动调整"],
-    ["speed", "速度优先", "更多预取，切换视频更快"],
-    ["data-saving", "省流量", "只加载正在播放的视频"],
-    ["off", "关闭", "禁用后台视频预取"],
-  ] as const;
   openSheetKind = "cache-settings";
-  openSheet(shell, "智能缓存", choices.map(([value, title, sub]) => sheetChoice(
-    title, sub, prefs.cacheMode === value,
-    () => { setPref("cacheMode", value); adaptiveCache.setMode(value); openCacheModeSettings(); },
-  )));
+  openSheet(shell, "智能缓存", cacheModeChoices(prefs.cacheMode, value => { setPref("cacheMode", value); adaptiveCache.setMode(value); openCacheModeSettings(); }));
+}
+
+function openReadModeSettings(): void {
+  if (!shell) return;
+  const host = shell;
+  openSheetKind = "read-mode";
+  void createReadModeSheet({ load: () => api.readMode(), save: mode => api.setReadMode(mode),
+    render: nodes => { if (openSheetKind === "read-mode") openSheet(host, "读取方式", nodes); }, notify: message => toast(host, message) }).open();
 }
 
 function openGestureGuide(): void {

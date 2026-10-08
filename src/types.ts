@@ -121,3 +121,7 @@ export type CollectionWriteResponse =
   Omit<CollectionDto, "count" | "count_capped"> & Partial<Pick<CollectionDto, "count" | "count_capped">>;
 export type CollectionsResponse = { items: CollectionDto[] };
 export type CollectionPage = { items: Clip[]; hasMore: boolean; nextCursor: string | null };
+
+/** How the server reads archive media: the WebDAV mount, or direct storage links. */
+export type ReadMode = "webdav" | "direct";
+export type ReadModeState = { mode: ReadMode; direct_available: boolean };

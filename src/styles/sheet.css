@@ -50,3 +50,10 @@ button.sheet-row:active { background: var(--glass-hover); }
 
 .sheet-row-arrow { flex: none; font-size: 22px; line-height: 24px; color: var(--text-muted); transition: translate var(--dur-base) var(--ease-spring); }
 @media (hover: hover) { button.sheet-row:hover .sheet-row-arrow { translate: 4px 0; color: var(--primary); } }
+
+/* A switch in flight: the chosen row breathes and its mark becomes a small gold ring. */
+.sheet-row[aria-busy="true"] { animation: row-breathe 1.2s var(--ease) infinite; }
+@keyframes row-breathe { 50% { background: var(--primary-soft); } }
+.sheet-spinner { display: block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(227, 192, 106, .25); border-top-color: var(--primary); animation: media-ring-turn .8s linear infinite; }
+.sheet-row-choice:disabled:not([aria-busy="true"]) { opacity: .55; }
+.sheet-status { padding: 10px 14px; border: 1px solid rgba(227, 192, 106, .35); border-radius: var(--radius); background: var(--primary-soft); color: var(--primary-bright); font-weight: 650; animation: pop-in var(--dur-base) var(--ease-spring) backwards; }

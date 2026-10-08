@@ -24,17 +24,14 @@
 }
 
 .video-page.random-transition .media-slot {
-  animation: random-refresh-in 0.22s cubic-bezier(0.18, 0.72, 0.22, 1) both;
+  animation: random-refresh-in var(--dur-slow) var(--ease-spring-soft) backwards;
 }
 
 @keyframes random-refresh-in {
   from {
-    opacity: 0.45;
-    transform: translateY(18px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    opacity: 0.2;
+    transform: scale(1.06);
+    filter: blur(12px) saturate(140%);
   }
 }
 
@@ -100,25 +97,28 @@
   display: grid;
   justify-items: center;
   gap: 10px;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--text-secondary);
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -46%);
   transition: opacity 200ms ease, transform 200ms ease;
 }
 
+/* A gradient arc: a conic sweep masked down to a ring, glowing softly. */
 .media-loading-ring {
   display: block;
-  width: 38px;
-  height: 38px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-top-color: rgba(255, 255, 255, 0.92);
-  border-right-color: var(--primary);
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(139, 92, 246, 0) 0deg, #8b5cf6 120deg, #e879f9 250deg, #ff7ab6 340deg, rgba(255, 122, 182, 0) 360deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  filter: drop-shadow(0 0 8px rgba(232, 121, 249, 0.55));
 
-  animation: media-ring-turn 1s linear infinite;
+  animation: media-ring-turn .9s linear infinite;
   /* `visibility: hidden` does not stop an animation, and in a full feed nineteen of
      the twenty rings sit inside a hidden loader. A rotation nobody can see still
      costs raster and composite work every frame, competing with the video for it.

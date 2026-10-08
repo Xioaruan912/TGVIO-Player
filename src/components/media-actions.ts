@@ -1,6 +1,7 @@
 import { element } from "./dom";
 import { iconStack, actionButton } from "./controls";
 import type { ShellHandlers } from "../ui";
+import { burstFrom } from "./fx";
 export function buildMediaActions(handlers: ShellHandlers) {
   const actionRail = element("div", "action-rail action-menu");
   actionRail.setAttribute("role", "group");
@@ -48,7 +49,11 @@ export function buildMediaActions(handlers: ShellHandlers) {
     "下载原片",
   );
   actionRail.append(shuffleBtn, groupBtn, downloadBtn, deleteBtn);
-  favoriteBtn.addEventListener("click", handlers.onToggleFavorite);
+  favoriteBtn.addEventListener("click", () => {
+    // Celebrate only the gesture that adds a favourite; the controller still owns the state.
+    if (!favoriteBtn.classList.contains("selected")) burstFrom(favoriteBtn);
+    handlers.onToggleFavorite();
+  });
   downloadBtn.addEventListener("click", handlers.onDownload);
   soundBtn.addEventListener("click", handlers.onToggleSound);
   shuffleBtn.addEventListener("click", handlers.onShuffle);

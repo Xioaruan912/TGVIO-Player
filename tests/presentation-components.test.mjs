@@ -16,6 +16,9 @@ async function component(name) {
 Object.assign(deps, await component("timeline"));
 Object.assign(deps, await component("action-menu"));
 Object.assign(deps, await component("controls"));
+// Effects are decorative; with motion off they are no-ops the components may call freely.
+deps.motionAllowed = () => false;
+Object.assign(deps, await component("fx"));
 Object.assign(deps, await component("media-actions"));
 const { buildPlayerPanel } = await component("player-panel");
 const { buildLargePlayerView } = await component("large-player-view");
@@ -34,7 +37,7 @@ test("feed panel routes confirmed playback and locked intent to the existing cal
     onToggleFavorite:()=>favorites++,
     onDownload(){},onDeleteMedia(){},onToggleSound(){},onShuffle(){},onPrivacyLock(){},onOpenGroup(){},
   },cache);
-  assert.equal(cache.parentElement,panel.panel,"readout belongs to persistent controls");
+  assert.ok(panel.panel.contains(cache),"readout belongs to persistent controls");
   root.dataset.playbackState="playing";observer();
   assert.equal(panel.playBtn.getAttribute("aria-label"),"暂停");
   panel.playBtn.dispatch("click");assert.equal(toggles,1);

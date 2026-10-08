@@ -1,8 +1,9 @@
-/* 深夜影院 motion scale.
+/* Aurora Glass motion scale.
    The spring curves are generated from the damped-spring response
    x(t) = 1 - e^(-z*w*t) * (cos(wd*t) + (z*w/wd) * sin(wd*t)), wd = w*sqrt(1-z^2),
-   sampled into `linear()` stops. Measured overshoot is noted per token so the
-   character of each curve is explicit rather than guessed. */
+   sampled into `linear()` stops. Every effect here animates compositor-friendly
+   properties only (transform, translate, scale, opacity, clip-path, filter,
+   background-position): rich motion, never a layout pass. */
 
 :root {
   /* z=0.62 w=18, 8.4% overshoot: press feedback, switches, sliding indicators. */
@@ -11,7 +12,7 @@
   --ease-spring-soft: linear(0 0%, 0.1222 4.17%, 0.3518 8.33%, 0.573 12.5%, 0.7447 16.67%, 0.862 20.83%, 0.9344 25%, 0.9751 29.17%, 0.9954 33.33%, 1.0039 37.5%, 1.0062 41.67%, 1.0058 45.83%, 1.0044 50%, 1.003 54.17%, 1.0018 58.33%, 1.001 62.5%, 1.0005 66.67%, 1.0002 70.83%, 1 75%, 1 79.17%, 1 83.33%, 1 87.5%, 1 91.67%, 1 95.83%, 1 100%);
   /* z=0.90 w=11, 0.2% overshoot: large surfaces that must not bounce. */
   --ease-gentle: linear(0 0%, 0.109 5%, 0.3164 10%, 0.5215 15%, 0.6873 20%, 0.8075 25%, 0.8882 30%, 0.9392 35%, 0.9695 40%, 0.9865 45%, 0.9953 50%, 0.9995 55%, 1.0011 60%, 1.0015 65%, 1.0014 70%, 1.0011 75%, 1.0008 80%, 1.0005 85%, 1.0003 90%, 1.0002 95%, 1.0001 100%);
-  /* Exit and scroll-reveal: no overshoot, fast start, long settle. */
+  /* Exit and reveal: no overshoot, fast start, long settle. */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-quiet: cubic-bezier(0.4, 0, 1, 1);
 
@@ -20,21 +21,48 @@
   --dur-base: 280ms;
   --dur-slow: 420ms;
   --dur-cinema: 560ms;
-
-  /* 2% film grain. Kept as a data URI so the app never requests an asset. */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.022'/%3E%3C/svg%3E");
 }
 
-/* Registered so numeric/colour values can interpolate instead of snapping. */
+/* Registered so numeric values interpolate instead of snapping. */
 @property --p {
   syntax: "<percentage>";
   inherits: false;
   initial-value: 0%;
 }
 
-/* Sliding selection pill, shared by the bottom navigation and the browse
-   segmented control. Positioned by --ind-* so neither caller needs its own
-   animation, and hidden until a real target is measured. */
+/* ── Shared keyframes ─────────────────────────────────────────────────────── */
+@keyframes shimmer { to { background-position: -200% 0; } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes pop-in { 0% { opacity: 0; transform: scale(.6); } 60% { opacity: 1; transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes heart-beat { 0% { transform: scale(1); } 25% { transform: scale(1.35); } 45% { transform: scale(.9); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes sheen { 0%, 62% { background-position: 160% 0; } 100% { background-position: -60% 0; } }
+@keyframes halo { 0% { opacity: .7; transform: scale(.85); } 100% { opacity: 0; transform: scale(1.7); } }
+@keyframes aurora-drift {
+  0% { transform: translate3d(-4%, -2%, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(4%, 3%, 0) rotate(8deg) scale(1.08); }
+  100% { transform: translate3d(-4%, -2%, 0) rotate(0deg) scale(1); }
+}
+@keyframes nav-bounce { 0% { transform: translateY(0) scale(1); } 35% { transform: translateY(-5px) scale(1.12); } 70% { transform: translateY(1px) scale(.97); } 100% { transform: none; } }
+
+/* ── 1. Page transitions ──────────────────────────────────────────────────── */
+/* The transition overlay must never swallow input: a click during the swap still
+   reaches the control it aimed at. */
+::view-transition,
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) { pointer-events: none; }
+::view-transition-old(root) { animation: vt-leave var(--dur-base) var(--ease-in-quiet) both; }
+::view-transition-new(root) { animation: vt-enter var(--dur-slow) var(--ease-spring-soft) both; }
+@keyframes vt-leave { to { opacity: 0; transform: scale(.97); filter: blur(6px); } }
+@keyframes vt-enter { from { opacity: 0; transform: scale(1.03) translateY(12px); filter: blur(8px); } }
+
+/* Pages that are built without a view transition still arrive with a lift. */
+/* `backwards`, never `both`: a transform kept after the entrance would become the
+   containing block of every fixed descendant. */
+.browse-page, .large-player { animation: rise-in var(--dur-slow) var(--ease-spring-soft) backwards; }
+
+/* ── 2. Sliding selection pill (navigation dock and segmented controls) ───── */
 .sliding-indicator {
   position: absolute;
   inset: 0 auto auto 0;
@@ -43,65 +71,57 @@
   height: var(--ind-h, 0px);
   translate: var(--ind-x, 0px) var(--ind-y, 0px);
   border-radius: var(--radius-pill);
-  background: var(--primary-soft);
+  background: var(--accent-fill);
+  box-shadow: var(--accent-glow);
   pointer-events: none;
 }
 .sliding-indicator[data-ready="true"] {
-  transition: translate var(--dur-base) var(--ease-spring), width var(--dur-base) var(--ease-spring), height var(--dur-base) var(--ease-spring);
+  transition: translate var(--dur-slow) var(--ease-spring), width var(--dur-slow) var(--ease-spring), height var(--dur-slow) var(--ease-spring);
+}
+/* The active tab's icon hops once as the pill lands under it. */
+.nav-btn.active .icon { animation: nav-bounce var(--dur-slow) var(--ease-out-quint); }
+
+/* ── 3. A light sheen crossing primary actions every few seconds ──────────── */
+/* The two background layers are declared in glass.css; only the position moves. */
+.transport-play, .large-play, .login-submit, .large-privacy-play, .gesture-play {
+  animation: sheen 5.5s var(--ease-out-quint) infinite;
 }
 
-/* Grain and gold ambience are composed in foil.css, which owns the final
-   surface background for the app containers. */
-
-/* ── 华丽动效层 ─────────────────────────────────────────────────────────────
-   Every effect below animates only compositor-friendly properties. Nothing here
-   animates width/height/top/left, so a lavish gesture never costs a layout. */
-
-/* 1. View Transitions: the outgoing view sinks and fades, the incoming lifts in
-   on the soft spring. Firefox has no View Transitions, and there the swap simply
-   happens; the CSS state change still transitions, so the fallback is a plain
-   crossfade rather than nothing. */
-/* The transition overlay must never swallow input: a user who clicks again
-   during the 280ms swap still hits the control they aimed at. */
-::view-transition,
-::view-transition-group(*),
-::view-transition-old(*),
-::view-transition-new(*) { pointer-events: none; }
-::view-transition-old(root) {
-  animation: vt-leave var(--dur-base) var(--ease-spring-soft) both;
+/* ── 4. Cover cards: staggered entrance, pointer tilt and spotlight ───────── */
+.cover-grid > .cover-tile { animation: rise-in var(--dur-slow) var(--ease-spring-soft) backwards; }
+.cover-grid > .cover-tile:nth-child(2) { animation-delay: 30ms; }
+.cover-grid > .cover-tile:nth-child(3) { animation-delay: 60ms; }
+.cover-grid > .cover-tile:nth-child(4) { animation-delay: 90ms; }
+.cover-grid > .cover-tile:nth-child(5) { animation-delay: 120ms; }
+.cover-grid > .cover-tile:nth-child(6) { animation-delay: 150ms; }
+.cover-grid > .cover-tile:nth-child(7) { animation-delay: 180ms; }
+.cover-grid > .cover-tile:nth-child(8) { animation-delay: 210ms; }
+.cover-grid > .cover-tile:nth-child(9) { animation-delay: 240ms; }
+.cover-grid > .cover-tile:nth-child(10) { animation-delay: 270ms; }
+.cover-grid > .cover-tile:nth-child(11) { animation-delay: 300ms; }
+.cover-grid > .cover-tile:nth-child(n+12) { animation-delay: 330ms; }
+/* Where the browser can tie motion to scroll, later tiles rise as they enter. */
+@supports (animation-timeline: view()) {
+  .cover-grid > .cover-tile:nth-child(n+13) {
+    animation: rise-in linear both;
+    animation-delay: 0s;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
 }
-::view-transition-new(root) {
-  animation: vt-enter var(--dur-base) var(--ease-spring-soft) both;
-}
-@keyframes vt-leave { to { opacity: 0; transform: scale(.986) translateY(-8px); } }
-@keyframes vt-enter { from { opacity: 0; transform: scale(1.014) translateY(10px); } }
-
-/* 2. A slow gold glint crossing the metal. background-position is paint-only and
-   the elements are small, and the long hold keeps it a glint rather than a
-   constant shimmer. */
-.logo, .transport-play, .large-play, .login-submit, .large-privacy-play {
-  background-size: 220% 100%;
-  animation: gold-sheen 6s var(--ease-out-quint) infinite;
-}
-@keyframes gold-sheen {
-  0%, 58% { background-position: 130% 0; }
-  100% { background-position: -70% 0; }
-}
-
-/* 3. Spotlight: a gold glow that follows the pointer across a cover. The glow
-   lives on the media box so it can never wash out the title. */
 @media (hover: hover) {
+  .cover-tile-media { transform: perspective(700px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform var(--dur-base) var(--ease-spring-soft), box-shadow var(--dur-base) var(--ease); }
+  .cover-tile[data-spotlight="on"] .cover-tile-media { transition-duration: 90ms; }
   .cover-tile-media::after {
     content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-    background: radial-gradient(210px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(212, 175, 55, .26), transparent 62%);
+    background: radial-gradient(220px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(233, 227, 255, .22), transparent 62%);
     opacity: 0; transition: opacity var(--dur-fast) var(--ease);
   }
   .cover-tile[data-spotlight="on"] .cover-tile-media::after { opacity: 1; }
 }
 
-/* 4. Privacy cover irises shut. The video host is hidden instantly by the
-   existing rule, so this is purely how the opaque cover arrives - the picture is
-   never visible through it, and the cover stays fully opaque. */
+/* ── 5. Privacy cover irises shut. The video is hidden instantly by the feed
+   rules; this is only how the opaque cover arrives. ────────────────────── */
 .app-shell.privacy-locked .media-stage::after,
 .large-player.privacy-locked .large-stage::after {
   animation: privacy-iris var(--dur-slow) var(--ease-spring-soft) both;
@@ -111,46 +131,23 @@
   to { clip-path: circle(150% at 50% 50%); }
 }
 
-/* 5. A lavish focus ring: gold outline plus a soft halo, for keyboard users. */
-button:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visible {
-  outline-color: var(--gold-bright);
-  box-shadow: 0 0 0 6px rgba(212, 175, 55, .18);
-}
-
-/* 6. Scroll-driven chrome and tile entrances. Where the browser supports scroll
-   timelines the motion is tied to the actual scroll position; the JS reveal is
-   only the fallback (see motion.ts supportsScrollTimeline). */
-@supports (animation-timeline: scroll()) {
-  #feed { scroll-timeline-name: --feed; }
-  .topbar {
-    animation: topbar-chrome linear both;
-    animation-timeline: --feed;
-    animation-range: 0 72px;
-  }
-}
-@keyframes topbar-chrome {
-  to { background-color: var(--surface-glass); border-bottom-color: var(--border); backdrop-filter: blur(14px); }
-}
-@supports (animation-timeline: view()) {
-  .cover-grid .cover-tile {
-    animation: tile-enter linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 55%;
-  }
-}
-@keyframes tile-enter {
-  from { opacity: 0; transform: translateY(20px) scale(.97); }
-  to { opacity: 1; transform: none; }
-}
-
-/* 7. Clearing continue watching. The cards leave before the section does, so the
-   list never jumps out from under the pointer. Compositor-only properties, and the
-   global reduced-motion switch turns this into an instant swap. */
+/* ── 6. Clearing continue watching: cards leave before the section does. ── */
 .long-resume-section.is-clearing .cover-tile {
   animation: cover-leave var(--dur-base) var(--ease-in-quiet) both;
   pointer-events: none;
 }
 @keyframes cover-leave { to { opacity: 0; transform: translateY(10px) scale(.96); } }
+
+/* ── 7. Effects layer spawned by fx.ts (like burst, tap ripple). ────────── */
+.fx-burst { position: fixed; z-index: 90; width: 0; height: 0; pointer-events: none; }
+.fx-burst-heart { position: absolute; left: -36px; top: -36px; width: 72px; height: 72px; display: grid; place-items: center; color: var(--favorite); filter: drop-shadow(0 6px 18px rgba(255, 122, 182, .55)); animation: fx-heart 720ms var(--ease-out-quint) both; }
+@keyframes fx-heart { 0% { opacity: 0; transform: scale(.3) rotate(-14deg); } 30% { opacity: 1; transform: scale(1.25) rotate(6deg); } 60% { transform: scale(.95) rotate(0deg); } 100% { opacity: 0; transform: translateY(-46px) scale(1.05); } }
+.fx-burst-ring { position: absolute; left: -30px; top: -30px; width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--favorite); animation: fx-ring 560ms var(--ease-out-quint) both; }
+@keyframes fx-ring { from { opacity: .9; transform: scale(.3); } to { opacity: 0; transform: scale(1.6); border-width: 0; } }
+.fx-burst-dot { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--dot-color, var(--favorite)); animation: fx-dot 640ms var(--ease-out-quint) both; }
+@keyframes fx-dot { from { opacity: 1; transform: rotate(var(--angle)) translateY(0) scale(1); } to { opacity: 0; transform: rotate(var(--angle)) translateY(calc(var(--dist) * -1)) scale(.3); } }
+.fx-ripple { position: absolute; z-index: 6; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; background: radial-gradient(circle, rgba(233, 227, 255, .28), rgba(182, 156, 255, .10) 55%, transparent 70%); pointer-events: none; animation: fx-ripple 620ms var(--ease-out-quint) both; }
+@keyframes fx-ripple { from { opacity: 1; transform: scale(.2); } to { opacity: 0; transform: scale(1.6); } }
 
 @media (prefers-reduced-motion: reduce) {
   /* Springs become plain linear so nothing overshoots or travels. The global
@@ -162,4 +159,6 @@ button:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visibl
     --ease-out-quint: linear;
     --ease-in-quiet: linear;
   }
+  .cover-tile-media { transform: none !important; }
+  .fx-burst, .fx-ripple { display: none; }
 }

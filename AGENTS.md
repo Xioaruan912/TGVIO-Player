@@ -1,6 +1,6 @@
 # TGVIO-Player：AI 与开发者约定
 
-本仓库只包含 TGVIO Player 的 Web 前端（Vite + TypeScript）。开始工作先读本文件与 [前端设计](docs/DESIGN.md)；视觉令牌与动效标尺见 [Dark Cinema 设计记录](docs/DARK_CINEMA.md)。
+本仓库只包含 TGVIO Player 的 Web 前端（Vite + TypeScript）。开始工作先读本文件与 [前端设计](docs/DESIGN.md)；视觉令牌与动效见 [Aurora Glass](docs/AURORA_GLASS.md)。
 用户当前指令优先；历史记录、交接与发布回执不能授权新任务或覆盖当前代码事实。
 
 ## 1. 范围与上游

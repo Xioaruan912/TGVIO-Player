@@ -71,8 +71,14 @@ try {
   await evaluate("(async()=>{const a=document.getAnimations().filter(x=>String(x.effect&&x.effect.pseudoElement||\"\").includes(\"view-transition\"));if(a.length)await Promise.all(a.map(x=>x.finished.catch(()=>{})));return true})()");
  };
  const click=async selector=>{
+  // A View Transition can start just after the settle check; while it runs only the
+  // probe is blind, so the probe retries briefly instead of failing on that window.
+  let box;
+  for(let attempt=0;attempt<10;attempt++){
   await settleTransitions();
-  const box=await evaluate("(()=>{const el=[...document.querySelectorAll("+JSON.stringify(selector)+")].find(e=>e.getClientRects().length&&!e.closest('[inert]'));if(!el)return null;el.scrollIntoView({block:'nearest',inline:'nearest'});const r=el.getBoundingClientRect(),sc=el.closest('.library-list,.long-list'),clip=sc?sc.getBoundingClientRect():{top:0,bottom:innerHeight};const x=r.x+r.width/2,y=(Math.max(r.top,clip.top)+Math.min(r.bottom,clip.bottom,innerHeight))/2;return {x,y,hit:el.contains(document.elementFromPoint(x,y)),rect:{left:r.left,top:r.top,width:r.width,height:r.height},hitElement:document.elementFromPoint(x,y)?.outerHTML.slice(0,240),viewport:{width:innerWidth,height:innerHeight,scale:visualViewport?.scale},scroll:{x:scrollX,y:scrollY}};})()");
+  box=await evaluate("(()=>{const el=[...document.querySelectorAll("+JSON.stringify(selector)+")].find(e=>e.getClientRects().length&&!e.closest('[inert]'));if(!el)return null;el.scrollIntoView({block:'nearest',inline:'nearest'});const r=el.getBoundingClientRect(),sc=el.closest('.library-list,.long-list'),clip=sc?sc.getBoundingClientRect():{top:0,bottom:innerHeight};const x=r.x+r.width/2,y=(Math.max(r.top,clip.top)+Math.min(r.bottom,clip.bottom,innerHeight))/2;return {x,y,hit:el.contains(document.elementFromPoint(x,y)),rect:{left:r.left,top:r.top,width:r.width,height:r.height},hitElement:document.elementFromPoint(x,y)?.outerHTML.slice(0,240),viewport:{width:innerWidth,height:innerHeight,scale:visualViewport?.scale},scroll:{x:scrollX,y:scrollY}};})()");
+  if(box?.hit)break;await delay(100);
+  }
   check(box?.hit,"pointer can reach "+selector+" "+JSON.stringify(box));
   await cdp("Input.dispatchMouseEvent",{type:"mousePressed",button:"left",clickCount:1,x:box.x,y:box.y});
   await cdp("Input.dispatchMouseEvent",{type:"mouseReleased",button:"left",clickCount:1,x:box.x,y:box.y});await delay(250);
@@ -163,10 +169,12 @@ try {
    const ratio=card.dataset.variant==='wide'?9/16:16/9;
    if(Math.abs(media.height/media.width-ratio)>.02)errors.push('cover ratio '+card.dataset.variant);
    const key=Math.round(b.top);rows.set(key,[...(rows.get(key)||[]),b]);
-   const title=card.querySelector('.cover-tile-title').getBoundingClientRect(),duration=card.querySelector('.cover-tile-duration').getBoundingClientRect();
-   if(title.bottom>duration.top+1)errors.push('title overlaps duration');
+   const titleNode=card.querySelector('.cover-tile-title'),titleShown=titleNode.getClientRects().length>0;
+   const title=titleNode.getBoundingClientRect(),duration=card.querySelector('.cover-tile-duration').getBoundingClientRect();
+   // The dense step hides the title, and a hidden element measures as a zero box.
+   if(titleShown&&title.bottom>duration.top+1)errors.push('title overlaps duration');
    const retry=card.querySelector('.cover-tile-retry');
-   if(!retry.hidden){const q=retry.getBoundingClientRect();if(q.bottom>title.top)errors.push('retry overlaps title');if(q.height<44)errors.push('small retry target');}
+   if(!retry.hidden){const q=retry.getBoundingClientRect();if(titleShown&&q.bottom>title.top)errors.push('retry overlaps title');if(q.height<44)errors.push('small retry target');}
    const playTarget=card.querySelector('.cover-tile-play').getBoundingClientRect();
    if(playTarget.width<44||playTarget.height<44)errors.push('small play target');
    for(const button of card.querySelectorAll('button:not(.cover-tile-play)')){
@@ -182,7 +190,12 @@ try {
   const positions=[...rows.keys()].sort((a,b)=>a-b);
   return {errors,columns:rows.get(positions[0])?.length,count:cards.length,overflow:list.scrollWidth>list.clientWidth+1,states:cards.map(c=>c.dataset.coverState)};
  };
+ // Tiles cascade in on a short, time-based entrance. The probe measures the settled
+ // layout, so it waits those out; scroll-driven and infinite animations never end
+ // and are not part of the arrival.
+ const settleTileEntrances=()=>evaluate("(async()=>{const a=document.getAnimations().filter(x=>x.timeline===document.timeline&&x.effect&&x.effect.target&&x.effect.target.closest&&x.effect.target.closest('.cover-tile')&&Number.isFinite(x.effect.getComputedTiming().endTime));await Promise.all(a.map(x=>x.finished.catch(()=>{})));return true})()");
  const layout=async label=>{
+  await settleTileEntrances();
   const result=await evaluate("("+layoutProbe.toString()+")()");
   check(!result.error&&!result.errors.length&&!result.overflow,label+" "+JSON.stringify(result));return result;
  };

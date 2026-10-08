@@ -117,6 +117,10 @@ export function openSheet(shell: SheetHost, title: string, body: Node[]): void {
   if (!alreadyOpen) {
     sheetDialogs.set(shell, activateDialog(card, () => closeSheet(shell), shell.sheet.querySelector<HTMLElement>(".sheet-close")!));
     animateArrival(card);
+    // Rows cascade in only when the sheet arrives. A settings toggle rebuilds the body
+    // in place, and replaying the cascade on every tap would make the list jump.
+    card.dataset.entering = "true";
+    window.setTimeout(() => { delete card.dataset.entering; }, 700);
   } else if (!card.contains(document.activeElement)) {
     shell.sheet.querySelector<HTMLElement>(".sheet-close")?.focus();
   }

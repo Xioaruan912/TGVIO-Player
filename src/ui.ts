@@ -7,6 +7,7 @@ import { iconStack } from "./components/controls";
 import { buildNavigation } from "./components/navigation";
 import { buildAppHeader } from "./components/app-header";
 import { buildPlayerPanel } from "./components/player-panel";
+import { rippleAt } from "./components/fx";
 export type ShellHandlers = {
   onTogglePlayback: () => void;
   onPlayGesture: () => void;
@@ -210,6 +211,8 @@ export function seekPercent(max: number | string, value: number): number {
 export function showSeekFeedback(stage: HTMLElement, direction: "backward" | "forward"): void {
   const feedback = element("span", `double-tap-feedback ${direction}`, direction === "backward" ? "后退 10 秒" : "前进 10 秒");
   stage.appendChild(feedback);
+  const box = stage.getBoundingClientRect();
+  rippleAt(stage, box.left + box.width * (direction === "backward" ? 0.22 : 0.78), box.top + box.height * 0.47);
   window.setTimeout(() => feedback.remove(), 650);
 }
 

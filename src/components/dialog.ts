@@ -81,7 +81,7 @@ export function activateDialog(dialog: HTMLElement, onDismiss: () => void, initi
 export function animateArrival(node: HTMLElement): void {
   if (typeof node.animate !== 'function' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
   node.animate(
-    [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0)' }],
-    { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' },
+    [{ opacity: 0, transform: 'translateY(28px) scale(.97)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }],
+    { duration: 420, easing: 'cubic-bezier(.22,1,.36,1)' },
   );
 }

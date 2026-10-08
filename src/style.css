@@ -1,6 +1,3 @@
-/* The self-hosted display face is declared first so no component can paint
-   before its @font-face rule exists. */
-@import "./styles/fonts.css";
 @import "./styles/base.css";
 @import "./styles/cover.css";
 @import "./styles/browse.css";
@@ -10,15 +7,15 @@
 @import "./styles/sheet.css";
 @import "./styles/large.css";
 @import "./styles/settings.css";
-/* Motion tokens and the gold foil layer are declared last so they win over the
+/* Motion tokens and the glass/aurora layer are declared last so they win over the
    component `background:` shorthands without editing every component file. */
 @import "./styles/motion.css";
-@import "./styles/foil.css";
+@import "./styles/glass.css";
 
 /* Attribute semantics always win over component and playback-state selectors. */
 [hidden] { display: none !important; }
 
-/* Central motion policy includes future UI-agent components and pseudo-elements. */
+/* Central motion policy includes future components and pseudo-elements. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;

@@ -1,40 +1,52 @@
-/* Favorites, settings and choices share an accessible card sheet. */
-.sheet { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; background: rgb(7 8 9 / 66%); backdrop-filter: blur(3px); }
-.sheet-card { width: 100%; max-height: 90dvh; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 20px 20px 0 0; overflow: hidden; box-shadow: 0 -12px 60px rgba(0, 0, 0, .6); animation: sheet-up 260ms var(--ease); }
-@keyframes sheet-up { from { transform: translateY(24px); opacity: .5; } to { transform: none; opacity: 1; } }
-.sheet-handle { width: 44px; height: 4px; flex: none; margin: 10px auto 0; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--gold-hairline-strong), transparent); }
+/* Favorites, settings and choices share one accessible glass sheet. */
+.sheet { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; background: rgba(6, 5, 11, .55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: fade-in var(--dur-base) var(--ease) backwards; }
+.sheet-card { width: 100%; max-height: 90dvh; display: flex; flex-direction: column; border: 1px solid var(--glass-border); border-bottom: 0; border-radius: var(--radius-panel) var(--radius-panel) 0 0; overflow: hidden; background: var(--glass-strong); box-shadow: var(--glass-edge), 0 -20px 70px rgba(0, 0, 0, .6); }
+/* The arrival itself is animated by dialog.ts (animateArrival), once per opening. */
+.sheet-handle { width: 44px; height: 5px; flex: none; margin: 10px auto 0; border-radius: 3px; background: rgba(255, 255, 255, .28); }
 /* While the sheet is being dragged its arrival transition must not fight it. */
 .sheet-card[data-dragging="on"] { transition: none; animation: none; will-change: transform; }
-.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px 12px; border-bottom: 1px solid var(--line); }
-.sheet-title { margin: 0; font-size: 22px; font-weight: 700; }
-.sheet-close { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 14px; color: var(--text-secondary); background: var(--surface-soft); }
-.sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 20px 20px calc(24px + var(--safe-bottom)); display: grid; gap: 10px; align-content: start; background: var(--bg); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px 14px; border-bottom: 1px solid var(--border); }
+.sheet-title { margin: 0; font-size: 24px; font-weight: 850; letter-spacing: -.02em; }
+.sheet-close { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 1px solid var(--glass-border); border-radius: 50%; color: var(--text); background: var(--glass-light); }
+.sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 18px 18px calc(24px + var(--safe-bottom)); display: grid; gap: 10px; align-content: start; }
 /* A grid track will not shrink below its item's min-content on its own. A sheet child
    that carries a date/number input would then push the panel wider than the sheet and get
    silently clipped, so every child is told it may shrink. */
 .sheet-body > * { min-width: 0; }
-.sheet-section { margin: 12px 4px 2px; font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--primary); }
-.sheet-note { margin: 4px; font-size: 12px; line-height: 1.7; color: var(--muted); overflow-wrap: anywhere; }
-.sheet-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 14px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-raised); color: var(--text); text-align: left;  }
-button.sheet-row:active { background: var(--surface-soft); }
+/* The cascade runs only while the sheet is arriving (sheet.ts sets the flag). */
+.sheet-card[data-entering] .sheet-body > * { animation: rise-in var(--dur-slow) var(--ease-spring-soft) backwards; }
+.sheet-card[data-entering] .sheet-body > :nth-child(2) { animation-delay: 30ms; }
+.sheet-card[data-entering] .sheet-body > :nth-child(3) { animation-delay: 60ms; }
+.sheet-card[data-entering] .sheet-body > :nth-child(4) { animation-delay: 90ms; }
+.sheet-card[data-entering] .sheet-body > :nth-child(5) { animation-delay: 120ms; }
+.sheet-card[data-entering] .sheet-body > :nth-child(n+6) { animation-delay: 150ms; }
+.sheet-section { margin: 12px 4px 2px; font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--primary); }
+.sheet-note { margin: 4px; font-size: 12px; line-height: 1.7; color: var(--text-muted); overflow-wrap: anywhere; }
+.sheet-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 14px; border: 1px solid var(--glass-border); border-radius: var(--radius-lg); background: var(--glass-light); color: var(--text); text-align: left; }
+button.sheet-row:active { background: var(--glass-hover); }
 .sheet-row-text { display: grid; gap: 4px; min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; }
-.sheet-row-title { font-size: 14px; font-weight: 650; line-height: 1.5; }
-.sheet-row-sub { font-size: 12px; line-height: 1.6; color: var(--muted); }
-.sheet-row-note { font-size: 11px; line-height: 1.5; color: var(--faint); }
-.sheet-choice-mark { width: 26px; height: 26px; display: grid; place-items: center; flex: none; border: 1px solid var(--line); border-radius: 50%; color: var(--accent-ink); font-weight: 800; }
-.sheet-row-choice[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-soft); }
-.sheet-row-choice[aria-pressed="true"] .sheet-choice-mark { background: var(--primary); border-color: var(--primary); }
-.sheet-row-icon { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 12px; color: var(--primary); background: var(--primary-soft); }
+.sheet-row-title { font-size: 14px; font-weight: 700; line-height: 1.5; }
+.sheet-row-sub { font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
+.sheet-row-note { font-size: 11px; line-height: 1.5; color: var(--text-muted); }
+.sheet-choice-mark { width: 26px; height: 26px; display: grid; place-items: center; flex: none; border: 2px solid var(--glass-border-strong); border-radius: 50%; color: var(--accent-ink); font-weight: 800; transition: scale var(--dur-base) var(--ease-spring); }
+.sheet-row-choice[aria-pressed="true"] { border-color: rgba(182, 156, 255, .55); background: var(--primary-soft); }
+.sheet-row-choice[aria-pressed="true"] .sheet-choice-mark { border-color: transparent; background-image: var(--accent-fill); box-shadow: var(--accent-glow); scale: 1.08; }
+.sheet-row-icon { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border-radius: 12px; color: var(--accent-ink); background-image: var(--accent-fill); }
 .sheet-row-heart { display: grid; place-items: center; min-width: 20px; color: var(--favorite); }
-.sheet-empty { display: grid; justify-items: center; gap: 10px; padding: 40px 20px; border: 1px dashed var(--border-strong); border-radius: 20px; text-align: center; background: var(--surface); }
-.sheet-empty-title { margin: 0; font-size: 16px; font-weight: 650; }
-.sheet-empty-sub { margin: 0; max-width: 22em; font-size: 13px; line-height: 1.7; color: var(--muted); }
-.switch { position: relative; width: 40px; height: 22px; flex: none; border-radius: 999px; background: var(--border-strong); transition: background var(--dur-fast) var(--ease); }
-.switch-knob { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--text-secondary); transition: transform var(--dur-base) var(--ease-spring), background var(--dur-fast) var(--ease); }
-.sheet-row-toggle[aria-checked="true"] .switch { background: var(--primary); }
-.sheet-row-toggle[aria-checked="true"] .switch-knob { background: var(--accent-ink); }
+.sheet-empty { display: grid; justify-items: center; gap: 10px; padding: 40px 20px; border: 1px dashed var(--glass-border-strong); border-radius: var(--radius-lg); text-align: center; background: var(--glass-light); }
+.sheet-empty-title { margin: 0; font-size: 16px; font-weight: 750; }
+.sheet-empty-sub { margin: 0; max-width: 22em; font-size: 13px; line-height: 1.7; color: var(--text-secondary); }
+.switch { position: relative; width: 46px; height: 28px; flex: none; border-radius: 999px; background: rgba(255, 255, 255, .16); transition: background var(--dur-fast) var(--ease); }
+.switch-knob { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .4); transition: transform var(--dur-slow) var(--ease-spring); }
+.sheet-row-toggle[aria-checked="true"] .switch { background-image: var(--accent-fill); box-shadow: 0 0 14px rgba(162, 28, 175, .5); }
 .sheet-row-toggle[aria-checked="true"] .switch-knob { transform: translateX(18px); }
-@media (min-width: 900px) { .sheet { align-items: stretch; justify-content: flex-end; padding: 16px; } .sheet-card { width: min(600px,100%); max-height: none; border-radius: var(--radius-panel); } .sheet-handle { display: none; } .sheet-head { padding: 20px 24px; } }
-@media (hover: hover) { button.sheet-row:hover { border-color: var(--primary); background: var(--primary-soft); } }
+@media (min-width: 900px) {
+  .sheet { align-items: stretch; justify-content: flex-end; padding: 16px; }
+  .sheet-card { width: min(560px, 100%); max-height: none; border-bottom: 1px solid var(--glass-border); border-radius: var(--radius-panel); }
+  .sheet-handle { display: none; }
+  .sheet-head { padding: 22px 24px; }
+}
+@media (hover: hover) { button.sheet-row:hover { border-color: rgba(182, 156, 255, .45); background: var(--glass-hover); } .sheet-close:hover { background: var(--glass-hover); } }
 
-.sheet-row-arrow { flex: none; font-size: 22px; line-height: 24px; color: var(--text-muted); }
+.sheet-row-arrow { flex: none; font-size: 22px; line-height: 24px; color: var(--text-muted); transition: translate var(--dur-base) var(--ease-spring); }
+@media (hover: hover) { button.sheet-row:hover .sheet-row-arrow { translate: 4px 0; color: var(--primary); } }

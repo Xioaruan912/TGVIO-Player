@@ -1,94 +1,103 @@
-/* Shared browse layout. Header/tools stay put; only content scrolls. */
-.browse-page { position: fixed; inset: 0 0 calc(66px + var(--safe-bottom)); z-index: 45; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--text); padding-inline: var(--safe-left) var(--safe-right); }
-.browse-header { display: flex; align-items: center; gap: 14px; min-height: calc(96px + var(--safe-top)); padding: calc(14px + var(--safe-top)) 20px 14px; flex: none; background: var(--surface); border-bottom: 1px solid transparent; }
-.browse-page.is-scrolled .browse-header { border-bottom-color: var(--border); }
-.browse-back { flex: 0 0 44px; width: 44px; height: 44px; padding: 0 !important; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius); }
-.browse-heading { min-width: 0; display: grid; gap: 4px; }
-.browse-eyebrow { font-size: 12px; line-height: 18px; letter-spacing: .02em; color: var(--text-muted); }
-.browse-title { margin: 0; font-size: 26px; line-height: 34px; font-weight: 700; letter-spacing: -.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.library-toolbar { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 20px 10px; flex: none; align-items: center; }
-/* One segmented pill with a sliding selection, instead of three loose buttons. */
-.library-segments { position: relative; display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface-sunken); }
-.library-segment { position: relative; z-index: 1; min-height: 38px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); font-size: 13px; }
-.library-segment[aria-pressed="true"] { color: var(--primary); font-weight: 650; }
-.library-button { min-height: 44px; min-width: 44px; padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text-secondary); font-size: 13px; line-height: 20px; touch-action: manipulation; }
-.library-toolbar > .library-button:not(.library-select-toggle) { border-color: transparent; background: transparent; }
-.library-toolbar > .library-button[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); font-weight: 650; }
+/* Shared browse layout. Header/tools stay put; only content scrolls. The page
+   stops at the dock line so the floating dock stays the one navigation surface. */
+.browse-page { position: fixed; inset: 0 0 var(--dock-space); z-index: 45; min-width: 0; min-height: 0; display: flex; flex-direction: column; color: var(--text); padding-inline: var(--safe-left) var(--safe-right); }
+.browse-header { display: flex; align-items: center; gap: 14px; min-height: calc(92px + var(--safe-top)); padding: calc(14px + var(--safe-top)) 20px 12px; flex: none; border-bottom: 1px solid transparent; transition: background var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease); }
+.browse-page.is-scrolled .browse-header { background: var(--glass); border-bottom-color: var(--glass-border); }
+.browse-back { flex: 0 0 44px; width: 44px; height: 44px; padding: 0 !important; display: grid; place-items: center; border: 1px solid var(--glass-border); border-radius: 50%; background: var(--glass); color: var(--text); }
+.browse-heading { min-width: 0; display: grid; gap: 2px; animation: rise-in var(--dur-slow) var(--ease-spring-soft) backwards; }
+.browse-eyebrow { font-size: 11px; line-height: 18px; font-weight: 700; letter-spacing: .14em; color: var(--primary); }
+.browse-title { margin: 0; font-size: 30px; line-height: 38px; font-weight: 850; letter-spacing: -.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.library-toolbar { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 20px 10px; flex: none; align-items: center; animation: rise-in var(--dur-slow) var(--ease-spring-soft) 60ms backwards; }
+/* One segmented glass pill with the gradient selection sliding underneath. */
+.library-segments { position: relative; display: inline-flex; align-items: center; gap: 2px; padding: 4px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: var(--glass); box-shadow: var(--glass-edge); }
+/* Scoped to the pill so it outranks `.library-button`, which these buttons also carry. */
+.library-segments > .library-segment { position: relative; z-index: 1; min-height: 38px; min-width: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: transparent; box-shadow: none; color: var(--text-secondary); font-size: 13px; font-weight: 650; transition: color var(--dur-base) var(--ease); }
+.library-segments > .library-segment[aria-pressed="true"] { color: var(--accent-ink); background: transparent; border-color: transparent; }
+.library-button { min-height: 44px; min-width: 44px; padding: 8px 16px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: var(--glass); color: var(--text); font-size: 13px; font-weight: 600; line-height: 20px; touch-action: manipulation; box-shadow: var(--glass-edge); }
+.library-toolbar > .library-button[aria-pressed="true"] { background: var(--primary-soft); border-color: rgba(182, 156, 255, .45); color: var(--primary-bright); }
 .library-toolbar > .library-select-toggle { margin-left: auto; display: flex; align-items: center; }
-.library-select-toggle[aria-pressed="true"] { background: var(--primary); color: var(--accent-ink); border-color: var(--primary); }
+.library-select-toggle[aria-pressed="true"] { background-image: var(--accent-fill); color: var(--accent-ink); border-color: transparent; box-shadow: var(--accent-glow); }
 .library-date-label { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; color: var(--text-secondary); }
-.library-date-input { min-width: 0; max-width: 100%; min-height: 44px; padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: 16px; color-scheme: light; accent-color: var(--primary); }
-.library-notice { margin: 0; padding: 0 20px 14px; color: var(--text-muted); font-size: 12px; line-height: 1.7; flex: none; overflow-wrap: anywhere; }
-.library-selection { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 20px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); flex: none; }
-.library-selection > .library-button:first-child { background: var(--primary); border-color: var(--primary); color: var(--accent-ink); }
+.library-date-input { min-width: 0; max-width: 100%; min-height: 44px; padding: 6px 14px; border: 1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-light); color: var(--text); font-size: 16px; color-scheme: dark; accent-color: #8b5cf6; }
+.library-notice { margin: 0; padding: 0 20px 12px; color: var(--text-muted); font-size: 12px; line-height: 1.7; flex: none; overflow-wrap: anywhere; }
+.library-selection { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 12px 10px; padding: 10px 12px; border: 1px solid var(--glass-border); border-radius: var(--radius-lg); background: var(--glass-strong); box-shadow: var(--glass-edge), var(--shadow-card); flex: none; animation: pop-in var(--dur-base) var(--ease-spring) backwards; }
+.library-selection > .library-button:first-child { border-color: transparent; color: var(--accent-ink); }
 .library-selection:empty { display: none; }
-.library-list, .long-list { flex: 1; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 20px 24px; scrollbar-gutter: stable; }
+.library-list, .long-list { flex: 1; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 20px 28px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: rgba(182, 156, 255, .35) transparent; }
 .library-list.cover-grid { align-content: start; }
 /* auto-fit so a short directory list fills its row instead of reserving a
    phantom trailing column. Cover grids stay on auto-fill on purpose: stretching
    a lone 9:16 still would be worse than leaving it at tile size. */
-.directory-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); align-content: start; gap: 12px; }
-/* Centered content keeps the 12px rhythm instead of dumping the leftover height
-   of the minimum tap target into the gap above the count line. */
-.library-index-row { display: grid; grid-template-columns: 44px minmax(0,1fr); align-items: center; align-content: center; gap: 10px 12px; min-height: 120px; padding: 18px 20px; text-align: left; box-shadow: inset 0 1px 0 rgba(212, 175, 55, .05); }
-.directory-mark { display: grid; place-items: center; width: 44px; height: 44px; background: var(--primary-soft); color: var(--primary); border-radius: var(--radius); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.directory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); align-content: start; gap: 12px; }
+.library-index-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; align-content: center; gap: 10px 14px; min-height: 112px; padding: 18px 20px; border-radius: var(--radius-lg); text-align: left; animation: rise-in var(--dur-slow) var(--ease-spring-soft) backwards; transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), translate var(--dur-base) var(--ease-spring); }
+.library-index-row:nth-child(2) { animation-delay: 40ms; }
+.library-index-row:nth-child(3) { animation-delay: 80ms; }
+.library-index-row:nth-child(4) { animation-delay: 120ms; }
+.library-index-row:nth-child(n+5) { animation-delay: 160ms; }
+.directory-mark { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 16px; background-image: var(--accent-fill); color: var(--accent-ink); box-shadow: var(--accent-glow); }
 .directory-text { min-width: 0; display: grid; gap: 4px; }
-.library-index-title { font-size: 15px; line-height: 22px; font-weight: 650; color: var(--text); overflow-wrap: anywhere; }
+.library-index-title { font-size: 16px; line-height: 22px; font-weight: 750; color: var(--text); overflow-wrap: anywhere; }
 .library-index-meta { font-size: 12px; line-height: 20px; color: var(--text-muted); overflow-wrap: anywhere; }
-.directory-count { grid-column: 2; color: var(--text-secondary); font-size: 13px; font-variant-numeric: tabular-nums; }
-.library-empty, .long-empty { margin: 0; grid-column: 1 / -1; padding: 44px 24px; border: 1px dashed var(--border); border-radius: var(--radius-lg); background: var(--surface); color: var(--text-secondary); text-align: center; font-size: 14px; line-height: 1.8; }
+.directory-count { grid-column: 2; color: var(--primary); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.library-empty, .long-empty { margin: 0; grid-column: 1 / -1; padding: 48px 24px; border: 1px dashed var(--glass-border-strong); border-radius: var(--radius-lg); background: var(--glass); color: var(--text-secondary); text-align: center; font-size: 14px; line-height: 1.8; }
 .library-list > .library-button:not(.library-index-row) { justify-self: center; }
-.long-list { display: grid; gap: 28px; align-content: start; padding-top: 20px; }
+.long-list { display: grid; gap: 28px; align-content: start; padding-top: 16px; }
 .long-resume-section, .long-library-section { display: grid; min-width: 0; gap: 14px; align-content: start; }
-.long-resume-heading, .long-library-heading { margin: 0; font-size: 16px; font-weight: 650; color: var(--text); }
-.long-resume-heading::before { content: ""; display: inline-block; width: 3px; height: 14px; margin-right: 8px; border-radius: 4px; background: var(--accent); }
+.long-resume-heading, .long-library-heading { margin: 0; font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
+.long-resume-heading::before { content: ""; display: inline-block; width: 4px; height: 16px; margin-right: 10px; vertical-align: -2px; border-radius: 4px; background: var(--accent-fill); box-shadow: 0 0 10px rgba(232, 121, 249, .6); }
 /* The section that can empty itself owns the control that empties it. */
 .long-resume-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
-.long-resume-clear { flex: none; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text-secondary); font-size: 13px; }
+.long-resume-clear { flex: none; min-height: 44px; padding: 0 16px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: var(--glass); color: var(--text-secondary); font-size: 13px; font-weight: 600; }
 .long-resume-notice { margin: 0; font-size: 12px; line-height: 1.6; color: var(--text-muted); }
-@media (hover: hover) { .long-resume-clear:not(:disabled):hover { border-color: var(--primary); color: var(--primary); } }
-.long-retry { justify-self: center; min-height: 48px; padding: 0 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--primary); font-size: 13px; }
+.long-retry { justify-self: center; min-height: 48px; padding: 0 24px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: var(--glass); color: var(--primary-bright); font-size: 13px; font-weight: 650; }
 /* The filter panel. Every control is a real 44px hit target and every state is
    visible without reading: a pressed pill is the state, not a checkmark to hunt. */
-.filter-sheet { display: grid; gap: 10px; min-width: 0; }
+.filter-sheet { display: grid; gap: 12px; min-width: 0; }
 .filter-dates { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.filter-input { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: 16px; color-scheme: light; accent-color: var(--primary); }
-.filter-dash { flex: none; color: var(--muted); font-size: 13px; }
+.filter-input { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 6px 12px; border: 1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-light); color: var(--text); font-size: 16px; color-scheme: dark; accent-color: #8b5cf6; }
+.filter-dash { flex: none; color: var(--text-muted); font-size: 13px; }
 .filter-tri { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; }
-.filter-tri-label { font-size: 13px; color: var(--text-secondary); }
-.filter-tri-choices { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface-sunken); }
-.filter-tri-button { min-height: 44px; min-width: 44px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); font-size: 13px; touch-action: manipulation; }
-.filter-tri-button[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); font-weight: 650; }
+.filter-tri-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.filter-tri-choices { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: var(--glass-light); }
+.filter-tri-button { min-height: 44px; min-width: 44px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); font-size: 13px; font-weight: 600; touch-action: manipulation; }
+.filter-tri-button[aria-pressed="true"] { background-image: var(--accent-fill); color: var(--accent-ink); box-shadow: var(--accent-glow); }
 .filter-actions { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 6px; }
 .filter-actions .library-button { flex: 1 1 0; }
-.filter-apply { background: var(--primary-soft); color: var(--primary); font-weight: 650; }
-@media (hover: hover) { .filter-tri-button:not([aria-pressed="true"]):hover { color: var(--primary); } }
+.filter-apply { background-image: var(--accent-fill); color: var(--accent-ink); border-color: transparent; }
 @media (min-width: 900px) {
- .browse-page { left: calc(92px + var(--safe-left)); bottom: 0; padding-inline: 28px; max-width: var(--library-max); margin-inline: auto; }
- .browse-header { min-height: calc(118px + var(--safe-top)); padding-inline: 0; background: transparent; }
- .browse-title { font-size: 34px; line-height: 44px; }
- .library-toolbar, .library-selection { padding-inline: 0; }
- .library-selection { padding-inline: 16px; border-radius: var(--radius); margin-bottom: 12px; }
- .library-notice { padding-inline: 0; }
- .library-list, .long-list { padding-inline: 0; }
+  .browse-page { left: calc(100px + var(--safe-left)); bottom: 0; padding-inline: 28px; max-width: var(--library-max); margin-inline: auto; }
+  .browse-header { min-height: calc(116px + var(--safe-top)); padding-inline: 0; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+  .browse-title { font-size: 40px; line-height: 48px; }
+  .library-toolbar { padding-inline: 0; }
+  .library-selection { margin-inline: 0; padding-inline: 16px; }
+  .library-notice { padding-inline: 0; }
+  .library-list, .long-list { padding-inline: 0; }
 }
-@media (max-width: 380px) { .browse-header { padding-inline: 14px; gap: 10px; } .library-list, .long-list { padding-inline: 14px; scrollbar-gutter: auto; } .library-toolbar, .library-selection, .library-notice { padding-inline: 14px; } .browse-title { font-size: 20px; } }
+@media (max-width: 380px) { .browse-header { padding-inline: 14px; gap: 10px; } .library-list, .long-list { padding-inline: 14px; scrollbar-gutter: auto; } .library-toolbar, .library-notice { padding-inline: 14px; } .library-selection { margin-inline: 8px; } .browse-title { font-size: 22px; line-height: 30px; } }
 @media (max-height: 560px) and (orientation: landscape) {
- .browse-header { min-height: calc(60px + var(--safe-top)); padding-top: calc(6px + var(--safe-top)); padding-bottom: 6px; }
- .browse-eyebrow { display: none; }
- .library-toolbar { padding-block: 4px; }
- .library-notice { padding-bottom: 6px; }
+  .browse-header { min-height: calc(58px + var(--safe-top)); padding-top: calc(6px + var(--safe-top)); padding-bottom: 6px; }
+  .browse-eyebrow { display: none; }
+  .browse-title { font-size: 22px; line-height: 30px; }
+  .library-toolbar { padding-block: 4px; }
+  .library-notice { padding-bottom: 6px; }
 }
-@media (hover: hover) { .library-button:not(:disabled):hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); } }
+@media (hover: hover) {
+  .library-button:not(:disabled):not(.library-segment):hover, .long-resume-clear:not(:disabled):hover, .browse-back:hover { background: var(--glass-hover); border-color: var(--glass-border-strong); }
+  .library-index-row:not(:disabled):hover { translate: 0 -3px; border-color: rgba(182, 156, 255, .45); }
+  .filter-tri-button:not([aria-pressed="true"]):hover { color: var(--text); }
+}
 
 /* Collections: a list of names and counts, not a grid of covers. */
 .collection-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-content: start; }
-.collection-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; min-height: 64px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); text-align: left; font-size: 14px; touch-action: manipulation; }
-.collection-row-name { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
-.collection-row-count { min-width: 44px; text-align: right; color: var(--primary); font-variant-numeric: tabular-nums; }
-.collection-row-kind { padding: 4px 10px; border-radius: var(--radius-pill); background: var(--surface-sunken); color: var(--text-secondary); font-size: 12px; }
-.collection-row-builtin .collection-row-kind { background: var(--primary-soft); color: var(--primary); }
+.collection-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; min-height: 66px; padding: 14px 18px; border: 1px solid var(--glass-border); border-radius: var(--radius-lg); background: var(--glass); color: var(--text); text-align: left; font-size: 14px; touch-action: manipulation; box-shadow: var(--glass-edge); animation: rise-in var(--dur-slow) var(--ease-spring-soft) backwards; transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), translate var(--dur-base) var(--ease-spring); }
+.collection-row:nth-child(2) { animation-delay: 40ms; }
+.collection-row:nth-child(3) { animation-delay: 80ms; }
+.collection-row:nth-child(n+4) { animation-delay: 120ms; }
+.collection-row-name { min-width: 0; overflow-wrap: anywhere; font-weight: 700; }
+.collection-row-count { min-width: 44px; text-align: right; color: var(--primary); font-weight: 750; font-variant-numeric: tabular-nums; }
+.collection-row-kind { padding: 4px 10px; border-radius: var(--radius-pill); background: var(--glass-light); color: var(--text-secondary); font-size: 12px; font-weight: 600; }
+.collection-row-builtin .collection-row-kind { background-image: var(--accent-fill); color: var(--accent-ink); }
 .collection-name-form { display: grid; gap: 8px; }
-@media (hover: hover) { .collection-row:hover { border-color: var(--primary); background: var(--primary-soft); } }
-.collection-row-rules { grid-column: 1 / -1; font-size: 12px; line-height: 1.5; color: var(--muted); }
-.collection-create-smart { border-color: var(--primary); color: var(--primary); }
+.collection-row-rules { grid-column: 1 / -1; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
+.collection-create-smart { border-color: rgba(182, 156, 255, .45); color: var(--primary-bright); }
+@media (hover: hover) { .collection-row:hover { translate: 0 -2px; border-color: rgba(182, 156, 255, .45); background: var(--glass-hover); } }

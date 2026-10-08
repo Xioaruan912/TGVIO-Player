@@ -3,6 +3,7 @@ import { buildRateMenu, type RateMenuHost } from "./rate-menu";
 import { element } from "./dom";
 import { icon, type IconName } from "../icons";
 import { buildTimeline } from "./timeline";
+import { burstFrom } from "./fx";
 
 /** Media lifecycle is owned by LargePlayer; this module only builds stable DOM. */
 export function labeledIcon(button: HTMLButtonElement, name: IconName, label: string) {
@@ -50,6 +51,11 @@ export function buildLargePlayerView(id: string, duration: number, rate?: RateMe
   const timeline = buildTimeline(duration, "long");
   const playButton = control("play", "播放", "large-play");
   const favoriteButton = control("heart", "收藏", "large-favorite");
+  // Decoration only: registered before LargePlayer's own handler, so it reads the
+  // state the press is changing from.
+  favoriteButton.addEventListener("click", () => {
+    if (!favoriteButton.classList.contains("selected")) burstFrom(favoriteButton);
+  });
   const soundButton = control("sound-off", "静音中", "large-sound");
   const fullscreenButton = control("fullscreen", "全屏", "large-fullscreen");
   const qualityButton = element("button", "large-btn large-quality");
@@ -62,7 +68,8 @@ export function buildLargePlayerView(id: string, duration: number, rate?: RateMe
   // The speed control sits beside the quality one: both change what is being streamed.
   const rateMenu = rate ? buildRateMenu(rate) : null;
   const actions = element("div", "large-action-row");
-  actions.append(playButton, soundButton, favoriteButton, qualityButton,
+  // Sound · play · favourite read as one primary group; Tab order follows what is seen.
+  actions.append(soundButton, playButton, favoriteButton, qualityButton,
     ...(rateMenu ? [rateMenu.root] : []), fullscreenButton, more);
   const netSpeed = element("span", "net-speed panel-cache", "已缓存未知 / 文件大小未知");
   netSpeed.hidden = true;

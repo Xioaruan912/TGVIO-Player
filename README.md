@@ -1,9 +1,11 @@
-# Player Web 开发入口
+# TGVIO-Player
+
+TGVIO 私人视频 Player 的 Web 前端（Vite + TypeScript），自 TGVIO 仓库 `player/web` 拆出并保留历史。
+Bot、Player 后端、镜像与部署仍在 TGVIO 仓库；本仓库只通过同源 Player API 工作。
 
 统一验证：`npm run check`；浏览器：`npm run test:browser`。
 Node 20.19+ / 22.12+；严格 TS 测试编译到临时 .test-dist，退出自动清理。
-完整说明见 [当前开发文档](../../docs/development/README.md) 与 [Player 约定](../AGENTS.md)。
-当前视觉与交互边界见 [Player 前端设计](../../docs/development/PLAYER_FRONTEND.md)。
+开发约定见 [AGENTS.md](AGENTS.md)，视觉与交互边界见 [前端设计](docs/DESIGN.md)。
 
 ## 既有 Player Web
 
@@ -86,7 +88,7 @@ an Android/iOS touch or real Range-stream playback acceptance test.
 Playback loading has one status layer; the poster is decorative and does not
 cover an existing frame during buffering. Feed refill is bounded, favorite
 mutations share one per-media queue across views, and cancelled gestures release
-seek/fast-forward state. See `../AGENTS.md` for the development contract.
+seek/fast-forward state. See `AGENTS.md` for the development contract.
 
 ### Idle privacy lock
 

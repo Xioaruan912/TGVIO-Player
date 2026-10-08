@@ -1,5 +1,5 @@
 {
-  "name": "tgvio-player-web",
+  "name": "tgvio-player",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,7 +10,8 @@
     "test:browser": "node --experimental-websocket tests/browser-layout.smoke.mjs && node --experimental-websocket tests/cover-browser.smoke.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "check": "npm run test && npm run build"
+    "check": "npm run hygiene && npm run test && npm run build",
+    "hygiene": "node scripts/hygiene.mjs"
   },
   "devDependencies": {
     "typescript": "^5.7.3",

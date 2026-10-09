@@ -75,7 +75,7 @@ export class LargePlayer {
   private readonly onClose: () => void;
   private readonly onUnlock: () => void;
   private readonly onPrivacyLock: (reason: "idle" | "explicit" | "background") => void;
-  private readonly onDeleted: (result: { deletedCopies: number; failedCopies: number }) => void;
+  private readonly onDeleted: () => void;
   private readonly onProgress?: (position: number, duration: number, force: boolean) => void;
   private readonly startAt: number;
   private didRestorePosition = false;
@@ -117,7 +117,7 @@ export class LargePlayer {
       onUnlock?: () => void;
       onPrivacyLock?: (reason: "idle" | "explicit" | "background") => void;
       onProgress?: (position: number, duration: number, force: boolean) => void;
-      onDeleted?: (result: { deletedCopies: number; failedCopies: number }) => void;
+      onDeleted?: () => void;
       startAt?: number;
     } = {},
   ) {
@@ -619,35 +619,16 @@ export class LargePlayer {
     await favoriteMutations.toggle(this.clip.id, this.clip.favorite);
   }
 
+  /** Confirmed deletes leave at once: the owner removes the clip and offers undo. */
   private async deleteMedia(): Promise<void> {
-    if (!this.clip.deletable || !await confirmMediaDelete(this.root)) return;
+    if (!this.clip.deletable || this.deleted || !await confirmMediaDelete(this.root)) return;
+    if (this.destroyed) return;
     this.seekControl.cancel();
-    this.deleteButton.disabled = true;
     this.video.pause();
     this.video.removeAttribute("src");
     this.video.load();
-    try {
-      const result = await api.deleteMedia(this.clip.id);
-      if (result.removed) {
-        this.deleted = true;
-        this.onDeleted(result);
-        return;
-      }
-      // A destroyed player must not resurrect its source or touch detached controls.
-      if (this.destroyed) return;
-      this.retryButton.textContent = result.deletedCopies > 0
-        ? `已删除 ${result.deletedCopies} 份，${result.failedCopies} 份失败，点此恢复播放`
-        : "删除失败，点此恢复播放";
-      this.retryButton.hidden = false;
-      this.applySource();
-    } catch {
-      if (this.destroyed) return;
-      this.retryButton.textContent = "删除失败，点此恢复播放";
-      this.retryButton.hidden = false;
-      this.applySource();
-    } finally {
-      this.deleteButton.disabled = false;
-    }
+    this.deleted = true;
+    this.onDeleted();
   }
 
   /** One place that writes the mute state, so the picture, the attribute and the button agree. */

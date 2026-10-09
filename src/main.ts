@@ -19,6 +19,7 @@ import { buildSettingsView } from "./views/settings-view";
 import { cacheModeChoices, createReadModeSheet } from "./views/network-sheets";
 import { ViewLifecycle } from "./views/view-lifecycle";
 import { LongVideoPage } from "./long";
+import { deleteWithUndo } from "./media-deletion";
 import { NetworkMeter } from "./net";
 import { VideoPool } from "./player";
 import { bindSeekControl } from "./seek-control";
@@ -108,7 +109,6 @@ let randomRefill: Promise<void> | null = null;
 let randomCandidateGeneration = 0;
 const randomCandidates: Clip[] = [];
 let randomSwitching = false;
-let deletingMedia = false;
 let lastActiveClipId = "";
 let lastActiveIndex = -1;
 let autoplayBlocked = false;
@@ -568,54 +568,46 @@ function purgeClientMedia(mediaId: string): number {
   return removeClipById(clips, mediaId);
 }
 
+function showFeedAt(index: number): void {
+  feedView?.replaceClips(activeClips());
+  activeIndex = Math.min(Math.max(0, index), Math.max(0, activeClips().length - 1));
+  feedView?.scrollToIndex(activeIndex, false);
+  lastActiveClipId = "";
+  lastActiveIndex = -1;
+  if (activeClips().length) applyActive(activeIndex);
+}
+
+/** Take a deleted clip out of every client list now; the result puts it back in place. */
+function removeClientMedia(clip: Clip): () => void {
+  const lists = [clips, randomCandidates, ...(contextFeed ? [contextFeed.clips] : [])];
+  const slots = lists.map(list => [list, list.findIndex(item => item.id === clip.id)] as const);
+  const wasFavorite = favorites.has(clip.id);
+  const shown = activeClips().some(item => item.id === clip.id);
+  const homeIndex = purgeClientMedia(clip.id);
+  if (shown && !activeClips().length && contextFeed) {
+    savedHomeIndex = Math.max(0, homeIndex);
+    leaveContext();
+  } else if (shown && activeClips().length) showFeedAt(activeIndex);
+  else if (shown) void ensureFeed(MIN_FEED).then(() => showFeedAt(0));
+  return () => {
+    const current = feedView?.clipAt(activeIndex)?.id;
+    let returned = false;
+    for (const [list, index] of slots) {
+      if (index < 0 || list.some(item => item.id === clip.id)) continue;
+      list.splice(Math.min(index, list.length), 0, clip);
+      returned ||= list === activeClips();
+    }
+    if (wasFavorite) favorites.add(clip.id);
+    if (!returned) return;
+    const at = activeClips().findIndex(item => item.id === current);
+    showFeedAt(at >= 0 ? at : activeIndex);
+  };
+}
+
 async function deleteCurrentMedia(): Promise<void> {
   const clip = feedView?.clipAt(activeIndex);
-  if (!clip || !clip.deletable || !shell || !pool || deletingMedia) return;
-  if (!await confirmMediaDelete(shell.root)) return;
-
-  deletingMedia = true;
-  shell.deleteBtn.disabled = true;
-  clearStallGuard();
-  paused = true;
-  pool.sync([], { paused: true, muted: true });
-  try {
-    const result = await api.deleteMedia(clip.id);
-    if (!result.removed) {
-      lastActiveClipId = "";
-      applyActive(activeIndex);
-      toast(
-        shell,
-        result.deletedCopies > 0
-          ? `已删除 ${result.deletedCopies} 份，${result.failedCopies} 份失败，视频仍保留`
-          : "源视频删除失败，请稍后重试",
-      );
-      return;
-    }
-
-    const homeIndex = purgeClientMedia(clip.id);
-
-    const remaining = activeClips();
-    if (!remaining.length && contextFeed) {
-      savedHomeIndex = Math.max(0, homeIndex);
-      leaveContext();
-    } else {
-      if (!remaining.length) await ensureFeed(MIN_FEED);
-      feedView?.replaceClips(activeClips());
-      activeIndex = Math.min(activeIndex, Math.max(0, activeClips().length - 1));
-      feedView?.scrollToIndex(activeIndex, false);
-      lastActiveClipId = "";
-      lastActiveIndex = -1;
-      if (activeClips().length) applyActive(activeIndex);
-    }
-    toast(shell, `已永久删除视频（${result.deletedCopies} 份源文件）`);
-  } catch {
-    lastActiveClipId = "";
-    applyActive(activeIndex);
-    toast(shell, "源视频删除失败，请稍后重试");
-  } finally {
-    deletingMedia = false;
-    if (shell) shell.deleteBtn.disabled = false;
-  }
+  if (!clip || !clip.deletable || !shell || !await confirmMediaDelete(shell.root)) return;
+  void deleteWithUndo({ mediaId: clip.id, remove: () => removeClientMedia(clip) });
 }
 
 function toggleSound(): void {
@@ -1117,12 +1109,13 @@ function openLongVideos(): void {
         onPrivacyLock: reason => { if (reason === "idle") idleEject(); else lockPrivacyScreen(); },
         onProgress: (position, duration, force) =>
           saveLongVideoProgress(clip.id, position, duration, force),
-        onDeleted: (result) => {
-          purgeClientMedia(clip.id);
-          page?.remove(clip.id);
+        onDeleted: () => void deleteWithUndo({ mediaId: clip.id, remove: () => {
+          const owner = page;
+          const restoreFeed = removeClientMedia(clip);
+          const restorePage = owner?.remove(clip.id);
           closePlayer();
-          toast(shell!, `已永久删除视频（${result.deletedCopies} 份源文件）`);
-        },
+          return () => { restoreFeed(); restorePage?.(); };
+        } }),
       });
       shell!.root.inert = true;
       if (page) page.root.inert = true;
@@ -1259,12 +1252,7 @@ function openLibrary(options: { mediaId?: string } = {}): void {
   const playback = createCollectionPlayback(active => { page?.setPlaybackActive(active); if (!active && libraryPage === page) shortIdle.setEnabled(true); });
   page = new VideoLibraryPage(
     selected => {
-      playback.start(selected, clip => {
-        page?.removeMedia(clip.id);
-        feedView?.replaceClips(activeClips());
-        activeIndex = Math.min(activeIndex, Math.max(0, activeClips().length - 1));
-        lastActiveClipId = "";
-      });
+      playback.start(selected, clip => page?.removeMedia(clip.id));
     },
     () => { restoreOriginFocus = true; contentView.clear(); },
     { ...options, sheet: shell },
@@ -1294,7 +1282,7 @@ function openLibrary(options: { mediaId?: string } = {}): void {
  * signals so the library and favorites grids cannot drift apart.
  */
 function createCollectionPlayback(syncPage: (active: boolean) => void): {
-  start(clips: Clip[], onDeleted?: (clip: Clip) => void): void;
+  start(clips: Clip[], onDeleted?: (clip: Clip) => (() => void) | undefined): void;
   stop(): void;
 } {
   let player: LibraryPlayback | null = null;
@@ -1317,7 +1305,7 @@ function createCollectionPlayback(syncPage: (active: boolean) => void): {
     adaptiveCache.update({ playbackPressure: false });
     preloader.setPressure(true);
   };
-  const start = (clips: Clip[], onDeleted?: (clip: Clip) => void): void => {
+  const start = (clips: Clip[], onDeleted?: (clip: Clip) => (() => void) | undefined): void => {
     stop();
     if (!clips.length || !shell) return;
     syncPage(true);
@@ -1329,10 +1317,11 @@ function createCollectionPlayback(syncPage: (active: boolean) => void): {
       onProgress: (clip, position, duration, force) => {
         if (clip.category === "long") saveLongVideoProgress(clip.id, position, duration, force);
       },
-      onDeleted: clip => {
-        purgeClientMedia(clip.id);
-        onDeleted?.(clip);
-      },
+      onDeleted: clip => void deleteWithUndo({ mediaId: clip.id, remove: () => {
+        const restoreFeed = removeClientMedia(clip);
+        const restorePage = onDeleted?.(clip);
+        return () => { restoreFeed(); restorePage?.(); };
+      } }),
     });
     document.body.append(player.root);
     player.root.querySelector<HTMLButtonElement>(".large-back")?.focus({ preventScroll: true });

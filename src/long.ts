@@ -85,15 +85,26 @@ export class LongVideoPage {
     }
   }
 
-  remove(mediaId: string): void {
+  /** Removes a deleted clip; the result puts it back in place when the delete is undone. */
+  remove(mediaId: string): () => void {
     this.removed.add(mediaId);
     const index = this.clips.findIndex((clip) => clip.id === mediaId);
-    if (index >= 0) this.clips.splice(index, 1);
+    const [clip] = index >= 0 ? this.clips.splice(index, 1) : [];
     this.progressState.positions.delete(mediaId);
     this.progressState.recent = this.progressState.recent.filter(
       ({ clip }) => clip.id !== mediaId,
     );
     this.renderItems();
+    return () => {
+      if (this.disposed) return;
+      this.removed.delete(mediaId);
+      if (clip && !this.clips.some(item => item.id === mediaId)) {
+        this.clips.splice(Math.min(index, this.clips.length), 0, clip);
+      }
+      this.renderItems();
+      // The undone delete kept its resume position on the server.
+      void this.refreshProgress();
+    };
   }
 
   private async loadMore(): Promise<void> {

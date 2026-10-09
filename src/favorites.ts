@@ -360,8 +360,9 @@ export class FavoritesPage {
     this.tiles.get(mediaId)?.setFavorite(enabled);
   }
 
-  removeMedia(mediaId: string): void {
-    if (this.destroyed) return;
+  /** Removes a deleted video; the result reloads the open grid if the delete is undone. */
+  removeMedia(mediaId: string): () => void {
+    if (this.destroyed) return () => undefined;
     // A response started before deletion must never resurrect the removed row.
     this.removed.add(mediaId);
     this.generation += 1;
@@ -376,6 +377,10 @@ export class FavoritesPage {
     this.syncScopeLabel();
     this.renderToolbar();
     this.renderNotice();
+    return () => {
+      if (this.destroyed || (this.scope === "collections" && this.collection === null)) return;
+      this.resetGrid(); this.renderToolbar(); void this.loadMore();
+    };
   }
 
   private syncSegments(): void {

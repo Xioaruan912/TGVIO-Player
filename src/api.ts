@@ -53,7 +53,7 @@ export type RecoveryDto = { restored: boolean; revision: number; favorite_count:
 export class ApiError extends Error {
   readonly code: ApiErrorCode;
 
-  constructor(code: ApiErrorCode) {
+  constructor(code: ApiErrorCode, readonly status?: number) {
     super(code === "unauthorized" ? "unauthorized" : "unavailable");
     this.name = "ApiError";
     this.code = code;
@@ -420,22 +420,21 @@ class PlayerApi {
     });
   }
 
-  async deleteMedia(mediaId: string): Promise<{
-    deletedCopies: number;
-    failedCopies: number;
-    removed: boolean;
-  }> {
-    if (MOCK_MODE) return { deletedCopies: 1, failedCopies: 0, removed: true };
-    const payload = await this.request<{
-      deleted_copies: number;
-      failed_copies: number;
-      removed: boolean;
-    }>(`/api/v1/media/${encodeURIComponent(mediaId)}`, { method: "DELETE" });
-    return {
-      deletedCopies: payload.deleted_copies,
-      failedCopies: payload.failed_copies,
-      removed: payload.removed,
-    };
+  /** Queue a permanent delete: hidden at once, files removed in the background until gone. */
+  async deleteMedia(mediaId: string): Promise<{ undoSeconds: number }> {
+    if (MOCK_MODE) return { undoSeconds: 6 };
+    const payload = await this.request<{ undo_seconds: number }>(`/api/v1/media/${encodeURIComponent(mediaId)}`, { method: "DELETE" });
+    return { undoSeconds: Math.max(0, Number(payload.undo_seconds) || 0) };
+  }
+
+  /** Undo a queued delete; false once the server started removing files (409). */
+  async cancelMediaDeletion(mediaId: string): Promise<boolean> {
+    if (MOCK_MODE) return true;
+    return this.request<{ restored: boolean }>(`/api/v1/media/${encodeURIComponent(mediaId)}/deletion`, { method: "DELETE" })
+      .then(payload => payload.restored === true, (error: unknown) => {
+        if (error instanceof ApiError && error.status === 409) return false;
+        throw error;
+      });
   }
 
   /** Send an allowlisted playback failure event to the Player diagnostic log. */
@@ -573,7 +572,7 @@ class PlayerApi {
     try {
       const response = await fetch(path, { ...init, signal: controller.signal, credentials: "same-origin" });
       if (!response.ok) {
-        throw new ApiError(response.status === 401 ? "unauthorized" : "unavailable");
+        throw new ApiError(response.status === 401 ? "unauthorized" : "unavailable", response.status);
       }
       // A 204 (adding or removing a collection member) has no body to parse, and the
       // caller ignores the result either way.

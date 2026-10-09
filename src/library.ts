@@ -68,6 +68,7 @@ export class LibraryController {
     if (this.loading) this.cancel();
   }
   cancel(): void { this.generation++; this.request?.abort(); this.loading = false; }
+  restore(mediaId: string): void { this.removed.delete(mediaId); }
   open(folder: LibraryFolder): void {
     this.clearSelection(); this.folder = folder; this.category = "all";
     this.mode = "folder"; this.filters = emptyFilters(); this.reset();
@@ -408,8 +409,8 @@ export class VideoLibraryPage {
     // ResizeObserver would never fire: re-pack the columns explicitly.
     this.masonry?.layout();
   }
-  private setCategory(category: LibraryCategory): void {
-    if (category === this.controller.category) return;
+  private setCategory(category: LibraryCategory, reload = false): void {
+    if (category === this.controller.category && !reload) return;
     this.generation += 1; this.controller.setCategory(category);
     this.resetList(); this.list.classList.add("cover-grid");
     this.renderGridToolbar(); void this.loadMore();
@@ -557,7 +558,8 @@ export class VideoLibraryPage {
       target.focus({ preventScroll: true });
     }
   }
-  public removeMedia(mediaId: string): void {
+  /** Removes a deleted video; the result reloads the open grid if the delete is undone. */
+  public removeMedia(mediaId: string): () => void {
     this.controller.removeMedia(mediaId);
     const tile = this.tiles.get(mediaId);
     const scroll = this.list.scrollTop;
@@ -567,6 +569,7 @@ export class VideoLibraryPage {
       this.title.textContent = `${this.controller.folder?.label ?? "全部封面"} · ${this.controller.rows.length}/${this.controller.total}`;
       this.renderSelection(); this.list.scrollTop = scroll;
     }
+    return () => { this.controller.restore(mediaId); if (!this.destroyed && this.isGridStage()) this.setCategory(this.controller.category, true); };
   }
   destroy(): void {
     this.destroyed = true; this.generation++; this.indexRequest?.abort(); this.controller.dispose();

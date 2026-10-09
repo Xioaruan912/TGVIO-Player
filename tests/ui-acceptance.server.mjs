@@ -30,8 +30,10 @@ const fontPath="/mnt/c/Windows/Fonts/msyh.ttc";let hasCjkFont=false;try{hasCjkFo
 let feedOffset=0;const favorites=new Set();const progress=new Map();const collections=new Map();const counters={requests:0,ranges:0,coverRequests:0,coverActive:0,coverPeak:0};
 // Session state for the idle-eject check: logout closes the API until a login.
 let sessionSignedOut=false;let readMode="webdav";let logoutCalls=0;
+// Opt-in delete contract (202 + undo window), so other runs keep their non-deletable menus.
+const deletable=process.env.TGVIO_ACCEPTANCE_DELETABLE==="1";const deletions=new Set();let deletionRequests=0;
 const mediaById=new Map();
-const item=(index,category="short")=>{const id=createHash("sha256").update(`local-test-media-${category}-${index}`).digest("hex");const media={id,width:category==="long"?320:240,height:category==="long"?180:426,duration_seconds:category==="long"?120:18,size_bytes:category==="long"?bytes:shortBytes,mime_type:"video/mp4",codec:"h264",stream_url:`/__acceptance__/media/${category}-${index}.mp4`,cover_url:index%12===0?null:index%12===1?"/__acceptance__/cover/broken":`/__acceptance__/cover/${category}-${index%3}`,favorite:favorites.has(id),deletable:false,category,groups:[],variants:[]};mediaById.set(id,media);return media;};
+const item=(index,category="short")=>{const id=createHash("sha256").update(`local-test-media-${category}-${index}`).digest("hex");const media={id,width:category==="long"?320:240,height:category==="long"?180:426,duration_seconds:category==="long"?120:18,size_bytes:category==="long"?bytes:shortBytes,mime_type:"video/mp4",codec:"h264",stream_url:`/__acceptance__/media/${category}-${index}.mp4`,cover_url:index%12===0?null:index%12===1?"/__acceptance__/cover/broken":`/__acceptance__/cover/${category}-${index%3}`,favorite:favorites.has(id),deletable,category,groups:[],variants:[]};mediaById.set(id,media);return media;};
 const libraryFixture=createLibraryFixture(item);
 for(let index=0;index<8;index++)favorites.add(item(index).id);
 collections.set("favorites",{name:"收藏",kind:"builtin",rules_json:null,members:new Set()});
@@ -58,7 +60,7 @@ const server=await createServer({configFile:false,root:fileURLToPath(new URL("..
   res.setHeader("Content-Length",String(end-start+1));if(req.method==="HEAD"){res.end();return;}
   const stream=createReadStream(selected,{start,end});res.on("close",()=>stream.destroy());stream.pipe(res);return;
  }
- if(pathname==="/__acceptance__/status"){res.setHeader("Content-Type","application/json");res.end(JSON.stringify({localOnly:true,...counters,signedOut:sessionSignedOut,logoutCalls,progressCount:progress.size,favorites:favorites.size,libraryOriginals:libraryFixture.originals.length,testClipId:libraryFixture.testClipId,testFolderId:libraryFixture.testFolderId,multiMediaId:libraryFixture.multiMediaId,feedMediaId:libraryFixture.feedMedia.id}));return;}
+ if(pathname==="/__acceptance__/status"){res.setHeader("Content-Type","application/json");res.end(JSON.stringify({localOnly:true,...counters,signedOut:sessionSignedOut,logoutCalls,deletionsQueued:deletions.size,deletionRequests,progressCount:progress.size,favorites:favorites.size,libraryOriginals:libraryFixture.originals.length,testClipId:libraryFixture.testClipId,testFolderId:libraryFixture.testFolderId,multiMediaId:libraryFixture.multiMediaId,feedMediaId:libraryFixture.feedMedia.id}));return;}
  if(!pathname.startsWith("/api/"))return next();
  // Discard test request bodies; never capture form or cookie contents.
  const chunks=[];for await(const chunk of req)chunks.push(chunk);let body={};try{body=JSON.parse(Buffer.concat(chunks).toString());}catch{}
@@ -132,6 +134,8 @@ const server=await createServer({configFile:false,root:fileURLToPath(new URL("..
   return send({items:page.map(member=>({...mediaById.get(member),favorite:favorites.has(member)})),has_more:offset+limit<members.length,next_cursor:offset+limit<members.length?String(offset+limit):null});
  }
  if(pathname==="/api/v1/long-progress")return send({items:[...progress].map(([id,position_seconds])=>({id,position_seconds})),recent_items:[...progress].filter(([id])=>mediaById.has(id)).map(([id,position_seconds])=>({...mediaById.get(id),position_seconds}))});
+ const deletion=/^\/api\/v1\/media\/([a-f0-9]{64})(\/deletion)?$/.exec(pathname);
+ if(deletion&&deletable&&req.method==="DELETE"){const [,id,undo]=deletion;if(undo){const restored=deletions.delete(id);res.statusCode=restored?200:409;return send({id,restored});}deletionRequests+=1;deletions.add(id);res.statusCode=202;return send({id,queued:true,undo_seconds:6});}
  const match=/^\/api\/v1\/media\/([a-f0-9]+)\/(favorite|progress|prepare)$/.exec(pathname);
  if(match){const [,id,action]=match;if(action==="favorite"){req.method==="DELETE"?favorites.delete(id):favorites.add(id);return send({favorite:favorites.has(id),sync_status:"synced"});}if(action==="progress"){req.method==="DELETE"?progress.delete(id):progress.set(id,Number(body.position_seconds)||0);}return send({ok:true});}
  if(pathname==="/api/v1/settings/read-mode"){

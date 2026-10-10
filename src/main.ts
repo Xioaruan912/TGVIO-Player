@@ -7,6 +7,7 @@ import { IdlePrivacyController, attachIdleActivity, createIdleEject } from "./id
 import { exitPrivacyPresentation } from "./privacy-presentation";
 import { fillUniqueFeed } from "./feed-loading";
 import { favoriteMutations } from "./favorite-service";
+import { installFavoriteCollections } from "./favorite-collections";
 import { ContextFeed } from "./context-feed";
 import { attachFullscreen } from "./fullscreen";
 import { attachGestures } from "./gestures";
@@ -542,11 +543,6 @@ favoriteMutations.subscribe(
     toast(shell, `${result.favorite ? "已收藏" : "已取消收藏"} · ${syncText}`);
   },
 );
-
-async function toggleFavorite(): Promise<void> {
-  const clip = feedView?.clipAt(activeIndex);
-  if (clip) await favoriteMutations.toggle(clip.id, favorites.has(clip.id));
-}
 
 function removeClipById(items: Clip[], mediaId: string): number {
   const index = items.findIndex((item) => item.id === mediaId);
@@ -1487,7 +1483,7 @@ function renderFeed(): void {
   const handlers: ShellHandlers = {
     onTogglePlayback: togglePlayback,
     onPlayGesture: playGesture,
-    onToggleFavorite: () => void toggleFavorite(),
+    onToggleFavorite: () => { const clip = feedView?.clipAt(activeIndex); if (clip) void favoriteMutations.toggle(clip.id, favorites.has(clip.id)); },
     onDownload: downloadCurrent,
     onDeleteMedia: () => void deleteCurrentMedia(),
     onToggleSound: toggleSound,
@@ -1503,6 +1499,7 @@ function renderFeed(): void {
     onNav,
   };
   shell = buildShell(handlers);
+  installFavoriteCollections(shell, (message) => { if (shell) toast(shell, message); });
   attachIdleActivity(document, shortIdle);
   shell.root.addEventListener("playersheetclose", () => {
     openSheetKind = null;

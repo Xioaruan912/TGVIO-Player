@@ -562,7 +562,7 @@ class PlayerApi {
     }
   }
 
-  private async request<T>(path: string, init?: RequestInit): Promise<T> {
+  async request<T>(path: string, init?: RequestInit): Promise<T> {
     const controller = new AbortController();
     const callerSignal = init?.signal;
     const cancel = () => controller.abort();

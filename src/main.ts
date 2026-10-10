@@ -8,6 +8,7 @@ import { exitPrivacyPresentation } from "./privacy-presentation";
 import { fillUniqueFeed } from "./feed-loading";
 import { favoriteMutations } from "./favorite-service";
 import { installFavoriteCollections } from "./favorite-collections";
+import { installWatchedTracker } from "./watched";
 import { ContextFeed } from "./context-feed";
 import { attachFullscreen } from "./fullscreen";
 import { attachGestures } from "./gestures";
@@ -30,7 +31,6 @@ import { PlaybackStateController, playbackUi, type PlaybackState } from "./playb
 import { ThumbnailPreview } from "./preview";
 import { prefs, setPref } from "./settings";
 import { initialMutedState, mutedForNextVideo, rememberMuted } from "./sound-policy";
-import { icon } from "./icons";
 import { installController } from "./install";
 import { playerMediaSession } from "./media-session";
 import { qualityLabel, qualityOptions, resolveStreamUrl } from "./quality";
@@ -1500,7 +1500,7 @@ function renderFeed(): void {
   };
   shell = buildShell(handlers);
   installFavoriteCollections(shell, (message) => { if (shell) toast(shell, message); });
-  attachIdleActivity(document, shortIdle);
+  installWatchedTracker(); attachIdleActivity(document, shortIdle);
   shell.root.addEventListener("playersheetclose", () => {
     openSheetKind = null;
     if (shell && !libraryPage && !longVideosOpen) setActiveNav(shell, contextFeed?.mode === "favorites" ? "favorites" : "home");

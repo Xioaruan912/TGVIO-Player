@@ -33,6 +33,7 @@ export function buildLargePlayerView(id: string, duration: number, rate?: RateMe
   const stage = element("div", "large-stage");
   const video = element("video", "large-video");
   video.playsInline = true; video.setAttribute("playsinline", ""); video.preload = "auto";
+  video.dataset.mediaId = id; // read by the watched tracker
   const loading = element("span", "media-loading");
   loading.setAttribute("role", "status");
   const ring = element("i", "media-loading-ring"); ring.setAttribute("aria-hidden", "true");

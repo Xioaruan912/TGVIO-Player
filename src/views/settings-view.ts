@@ -7,6 +7,7 @@ import type { NetworkMeter } from "../net";
 import { installController } from "../install";
 import { readModeLabel, syncReadMode } from "./network-sheets";
 import { api } from "../api";
+import { watchedForgetRow } from "../watched";
 
 export type SettingsViewActions = {
   muted: boolean;
@@ -111,6 +112,7 @@ export function buildSettingsView(actions: SettingsViewActions): Node[] {
     () => { setPref("doubleTapSeek", !prefs.doubleTapSeek); openSettings(); },
   ));
   body.push(sheetRow({ title: "查看手势说明", sub: "单击、双击、长按与拖动", onPick: openGestureGuide }));
+  body.push(watchedForgetRow());
 
   // One row per offered rate, like the quality list below: the viewer picks, nothing types.
   for (const rate of RATES) {

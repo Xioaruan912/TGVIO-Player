@@ -116,3 +116,15 @@ test("cache choices mark the current mode and report the pick", () => {
   choices[3].dispatch("click");
   assert.deepEqual(picked, ["off"]);
 });
+
+test("syncReadMode makes the settings label follow the server", async () => {
+  const { syncReadMode: sync, readModeLabel: label } = await load("views/network-sheets.js", {
+    element, sheetChoice: sheet.sheetChoice, sheetNote: sheet.sheetNote,
+  });
+  assert.match(label(), /网盘/);
+  assert.equal(await sync(async () => ({ mode: "direct", direct_available: true })), true);
+  assert.match(label(), /直连/);
+  assert.equal(await sync(async () => ({ mode: "direct", direct_available: true })), false);
+  assert.equal(await sync(async () => { throw new Error("offline"); }), false);
+  assert.match(label(), /直连/);
+});

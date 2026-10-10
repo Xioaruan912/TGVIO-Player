@@ -28,6 +28,21 @@ export function readModeLabel(): string {
 }
 
 /**
+ * Ask the server for the current read mode. Until this answers, the settings row
+ * can only show the default; it resolves true when the known mode changed.
+ */
+export async function syncReadMode(load: () => Promise<ReadModeState>): Promise<boolean> {
+  try {
+    const fresh = await load();
+    const changed = fresh.mode !== lastKnown.mode || fresh.direct_available !== lastKnown.direct_available;
+    lastKnown = fresh;
+    return changed;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The two read-mode choices. While a switch is in flight the chosen row shows a
  * spinner and both rows are disabled; a mode the server cannot offer stays visible
  * but disabled, with the reason.

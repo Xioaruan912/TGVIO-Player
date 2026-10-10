@@ -5,7 +5,8 @@ import { element, sheetNote, sheetRow, sheetSection, sheetToggle } from "../ui";
 import type { Clip, QualitySelection } from "../types";
 import type { NetworkMeter } from "../net";
 import { installController } from "../install";
-import { readModeLabel } from "./network-sheets";
+import { readModeLabel, syncReadMode } from "./network-sheets";
+import { api } from "../api";
 
 export type SettingsViewActions = {
   muted: boolean;
@@ -149,7 +150,13 @@ export function buildSettingsView(actions: SettingsViewActions): Node[] {
     sub: cacheLabels[prefs.cacheMode],
     onPick: openCacheModeSettings,
   }));
-  body.push(sheetRow({ title: "读取方式", sub: readModeLabel(), onPick: openReadModeSettings }));
+  const readModeRow = sheetRow({ title: "读取方式", sub: readModeLabel(), onPick: openReadModeSettings });
+  body.push(readModeRow);
+  // The row shows the server's real mode, not the default, as soon as it answers.
+  void syncReadMode(() => api.readMode()).then((changed) => {
+    const sub = readModeRow.querySelector(".sheet-row-sub");
+    if (changed && sub) sub.textContent = readModeLabel();
+  });
   body.push(
     sheetToggle(
       "显示缓存进度",

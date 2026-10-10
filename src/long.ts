@@ -22,6 +22,9 @@ export class LongVideoPage {
   private readonly toolbar = element("div", "library-toolbar");
   private readonly density = buildCoverDensityControl({ value: prefs.coverDensity, onSelect: value => this.setDensity(value) });
   private readonly tiles: CoverTileHandle[] = [];
+  // The "all long videos" grid and whether a notice follows it; only renderItems rebuilds them.
+  private libraryGrid: HTMLElement | null = null;
+  private noticeShown = false;
   private disposed = false;
   private readonly seen = new Set<string>();
   private readonly removed = new Set<string>();
@@ -126,11 +129,12 @@ export class LongVideoPage {
       this.hasMore = hasMore && incoming.length > 0;
       if (this.progress === progressRequest) this.progressState = progress;
       this.offset += items.length;
+      const added: Clip[] = [];
       for (const clip of incoming) {
         if (this.seen.size >= MAX_ROWS || this.seen.has(clip.id)) break;
-        this.seen.add(clip.id); this.clips.push(clip);
+        this.seen.add(clip.id); this.clips.push(clip); added.push(clip);
       }
-      this.renderItems();
+      if (!this.appendTiles(added)) this.renderItems();
     } catch {
       if (this.disposed) return;
       this.error = true;
@@ -150,8 +154,19 @@ export class LongVideoPage {
     }
   }
 
+  /** A next page goes under the tiles already shown, so their loaded covers stay put. */
+  private appendTiles(added: Clip[]): boolean {
+    if (!this.libraryGrid || this.noticeShown || this.seen.size >= MAX_ROWS) return false;
+    const resumable = resumableItems(this.progressState.recent).filter(({ clip }) => !this.removed.has(clip.id));
+    const grid = this.grid(omitResumableDuplicates(added, resumable), (clip) => this.progressState.positions.get(clip.id));
+    this.libraryGrid.append(...Array.from(grid.children));
+    return true;
+  }
+
   private renderItems(): void {
     if (this.disposed) return;
+    this.libraryGrid = null;
+    this.noticeShown = false;
     const scrollTop = this.list.scrollTop;
     this.tiles.splice(0).forEach(tile => tile.destroy());
     this.list.replaceChildren();
@@ -162,14 +177,15 @@ export class LongVideoPage {
       const section = element("section", "long-library-section");
       section.setAttribute("aria-label", "全部长视频");
       section.appendChild(element("h2", "long-library-heading", "全部长视频"));
-      section.appendChild(this.grid(library, (clip) => this.progressState.positions.get(clip.id)));
+      this.libraryGrid = this.grid(library, (clip) => this.progressState.positions.get(clip.id));
+      section.appendChild(this.libraryGrid);
       this.list.appendChild(section);
     }
     if (!this.clips.length && !this.hasMore && !resumable.length) {
-      this.list.appendChild(element("p", "long-empty", "暂无长视频"));
+      this.list.appendChild(element("p", "long-empty", "暂无长视频")); this.noticeShown = true;
     }
-    if (this.error) this.list.append(element("p", "long-empty", "暂时加载失败，已保留当前列表，可重试"));
-    if (this.seen.size >= MAX_ROWS && this.hasMore) this.list.append(element("p", "long-empty", "本次已达 1000 条信息预算"));
+    if (this.error) { this.list.append(element("p", "long-empty", "暂时加载失败，已保留当前列表，可重试")); this.noticeShown = true; }
+    if (this.seen.size >= MAX_ROWS && this.hasMore) { this.list.append(element("p", "long-empty", "本次已达 1000 条信息预算")); this.noticeShown = true; }
     this.syncLoadButton();
     this.list.scrollTop = scrollTop;
   }

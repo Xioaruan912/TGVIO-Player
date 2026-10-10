@@ -84,6 +84,21 @@ test("long videos render as wide cover cards, metadata only", async () => {
   page.destroy();
 });
 
+test("a next page is appended and keeps the tiles already shown", async () => {
+  progress = { positions: new Map(), recent: [] };
+  const page = new LongVideoPage(() => undefined, () => undefined);
+  document.body.append(page.root);
+  await flush();
+  const before = tiles(page);
+  assert.equal(before.length, 20);
+  byClass(page.root, "long-retry")[0].dispatch("click");
+  await flush();
+  const after = tiles(page);
+  assert.equal(after.length, 25);
+  assert.ok(before.every((tile, index) => after[index] === tile), "first-page tiles are the same nodes");
+  page.destroy();
+});
+
 test("continue watching only shows a real, meaningful position", async () => {
   const opened = [];
   progress = {

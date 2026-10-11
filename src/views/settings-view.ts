@@ -10,6 +10,8 @@ import { api } from "../api";
 import { watchedForgetRow } from "../watched";
 import { openDuplicateReview } from "../duplicates";
 import { coverBlurRow } from "../cover-privacy";
+import { endedRow } from "../playback-ending";
+import { centerLikeRow } from "../feed-tools";
 import type { SheetHost } from "../components/sheet";
 
 export type SettingsViewActions = {
@@ -116,6 +118,8 @@ export function buildSettingsView(actions: SettingsViewActions): Node[] {
     prefs.doubleTapSeek,
     () => { setPref("doubleTapSeek", !prefs.doubleTapSeek); openSettings(); },
   ));
+  body.push(centerLikeRow(openSettings));
+  body.push(endedRow(openSettings));
   body.push(sheetRow({ title: "查看手势说明", sub: "单击、双击、长按与拖动", onPick: openGestureGuide }));
   body.push(watchedForgetRow());
 

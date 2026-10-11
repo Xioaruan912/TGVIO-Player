@@ -170,3 +170,19 @@ details:not([open]) > .action-menu { display: none; }
   .topbar-settings:hover, .topbar-fullscreen:hover, .context-back:hover { background: var(--glass-hover); }
   .transport-play:hover { filter: brightness(1.1); }
 }
+
+/* 刷什么 chip (feed-source.ts). In a context the back button takes the brand's place. */
+.feed-source-chip { min-height: 40px; max-width: 42vw; padding: 0 14px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: var(--glass); color: var(--text); font-size: 13px; font-weight: 750; box-shadow: var(--glass-edge); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+.feed-source-chip.is-filtered { color: var(--primary); border-color: rgba(227, 192, 106, .45); }
+.topbar:has(.context-back:not([hidden])) .topbar-brand { display: none; }
+
+/* A double tap in the middle of the picture (feed-tools.ts). */
+.like-burst { position: fixed; z-index: 70; color: var(--favorite); pointer-events: none; transform: translate(-50%, -50%); animation: like-burst 900ms var(--ease-out-quint) forwards; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .45)); }
+@keyframes like-burst { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); } 40% { transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -110%) scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .like-burst { animation-duration: 1ms; animation-iteration-count: 1; } }
+
+/* 整理模式 swipes: the clip follows the finger; past the threshold it says what will happen. */
+.app-shell.swiping video.is-current { transform: translateX(var(--swipe-x)); transition: none; }
+.app-shell.swipe-delete .media-stage::after, .app-shell.swipe-collect .media-stage::after { position: absolute; z-index: 30; top: 40%; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: var(--radius-pill); font-size: 18px; font-weight: 800; pointer-events: none; }
+.app-shell.swipe-delete .media-stage::after { content: "松手删除"; background: var(--danger-fill); color: #fff; }
+.app-shell.swipe-collect .media-stage::after { content: "松手加入集合"; background: var(--accent-fill); color: var(--accent-ink); }

@@ -1,6 +1,6 @@
 import type { ArchiveGroup, Clip } from "./types";
 
-export type ContextFeedMode = "group" | "favorites";
+export type ContextFeedMode = "group" | "favorites" | "source";
 export type ContextPage = {
   items: Clip[];
   hasMore: boolean;

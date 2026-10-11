@@ -82,7 +82,7 @@ const clip = (id, deletable = true) => ({ id, deletable });
 test("organize mode deletes, favourites and moves on, with honest counts", async () => {
   store.clear(); timers.length = 0;
   const host = makeHost([clip("a"), clip("b"), clip("c", false)]);
-  const uninstall = installOrganize(host);
+  const tools = installOrganize(host);
   const bar = find(host.panel, n => n.className === "organize-bar")[0];
   assert.equal(bar.hidden, true, "off until chosen");
   byText(host.actionRail, "整理模式").dispatch("click");
@@ -113,7 +113,8 @@ test("organize mode deletes, favourites and moves on, with honest counts", async
   assert.deepEqual(opened, ["c"]);
   byText(bar, "退出整理").dispatch("click");
   assert.equal(bar.hidden, true);
-  uninstall();
+  assert.equal(tools.isOn(), false);
+  tools.uninstall();
   assert.equal(find(host.panel, n => n.className === "organize-bar").length, 0);
 });
 

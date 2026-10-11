@@ -9,8 +9,8 @@ import { fillUniqueFeed } from "./feed-loading";
 import { favoriteMutations } from "./favorite-service";
 import { installFavoriteCollections } from "./favorite-collections";
 import { installWatchedTracker } from "./watched";
-import { installOrganize } from "./organize";
-import { ContextFeed } from "./context-feed";
+import { advanceAfterEnd, extendFeedGestures, installFeedTools } from "./feed-tools";
+import { ContextFeed, type ContextPageLoader } from "./context-feed";
 import { attachFullscreen } from "./fullscreen";
 import { attachGestures } from "./gestures";
 import { LargePlayer } from "./large";
@@ -1172,14 +1172,12 @@ async function ensureContextPage(minimum: number): Promise<void> {
   feedView.appendTerminalPage("收藏已刷完");
 }
 
-async function enterContext(mode: "favorites"): Promise<void> {
+async function enterContext(mode: "favorites" | "source",
+  loader: ContextPageLoader = (cursor, signal) => api.favoritePage(FEED_BATCH, cursor, signal)): Promise<void> {
   if (!shell || !feedView || !pool) return;
   if (!contextFeed) savedHomeIndex = activeIndex;
   contextFeed?.dispose();
-  const context = new ContextFeed(
-    mode,
-    (cursor, signal) => api.favoritePage(FEED_BATCH, cursor, signal),
-  );
+  const context = new ContextFeed(mode, loader);
   contextFeed = context;
   lockPrivacyScreen();
   muted = mutedForNextVideo(muted);
@@ -1495,7 +1493,8 @@ function renderFeed(): void {
   shell = buildShell(handlers);
   installFavoriteCollections(shell, (message) => { if (shell) toast(shell, message); });
   installWatchedTracker(); attachIdleActivity(document, shortIdle);
-  installOrganize({ sheet: shell, root: shell.root, actionRail: shell.actionRail, panel: shell.playerPanel, favoriteButton: shell.favoriteBtn,
+  installFeedTools({ sheet: shell, contextBack: shell.contextBackBtn, leaveSource: () => { if (contextFeed) leaveContext(); },
+    enterSource: loader => { contentView.clear(); void enterContext("source", loader); }, root: shell.root, actionRail: shell.actionRail, panel: shell.playerPanel, favoriteButton: shell.favoriteBtn,
     currentClip: () => feedView?.clipAt(activeIndex) ?? null, next: () => feedView?.scrollToIndex(activeIndex + 1, true),
     removeClip: removeClientMedia, toggleFavorite: handlers.onToggleFavorite, notify: message => { if (shell) toast(shell, message); } });
   shell.root.addEventListener("playersheetclose", () => {
@@ -1514,7 +1513,7 @@ function renderFeed(): void {
     shouldPlay: !paused && privacyUnlocked && !longVideosOpen,
   });
   playback.onTransition = (state) => applyPlaybackState(state);
-  pool.shouldContinue = () => privacyUnlocked && !paused && !longVideosOpen;
+  pool.shouldContinue = () => privacyUnlocked && !paused && !longVideosOpen; pool.onEnded = advanceAfterEnd;
   pool.onPressure = (pressured) => {
     adaptiveCache.update({ playbackPressure: pressured || longVideosOpen, waiting: pressured });
     preloader.setPressure(pressured || longVideosOpen);
@@ -1602,7 +1601,7 @@ function renderFeed(): void {
     () => shell?.viewport ?? null,
     () => pool?.currentVideo() ?? null,
   );
-  attachGestures(shell.feed, feedGestureOptions());
+  attachGestures(shell.feed, extendFeedGestures(feedGestureOptions()));
   shell.root.classList.add("controls-visible");
   shell.viewport.addEventListener("pointerdown", showControlsForActivity, { passive: true });
   shell.viewport.addEventListener("touchstart", showControlsForActivity, { passive: true });

@@ -14,7 +14,8 @@ import type { Clip } from "./types";
  * 下一个 - and a running count. 加入集合 favourites the clip and asks which
  * collection to put it in (an existing favourite is asked straight away); once
  * that sheet closes, the feed moves on. A delete moves on by itself. 标签 opens
- * the current clip's tags. The 更多 menu gains 整理模式 and 标签 entries.
+ * the current clip's tags. The 更多 menu gains 整理模式 and 标签 entries. In this
+ * mode a swipe left deletes and a swipe right adds to a collection (feed-tools.ts).
  *
  * The feed keeps its own behaviour; this module only calls what the host hands it.
  */
@@ -52,7 +53,16 @@ function bigButton(name: IconName, label: string, className: string): HTMLButton
   return button;
 }
 
-export function installOrganize(host: OrganizeHost): () => void {
+export type OrganizeControls = {
+  /** Whether 整理模式 is on. */
+  isOn(): boolean;
+  /** The 删除 and 加入集合 actions, for the swipe gestures. */
+  deleteCurrent(): void;
+  collectCurrent(): void;
+  uninstall(): void;
+};
+
+export function installOrganize(host: OrganizeHost): OrganizeControls {
   applyCoverPrivacy();
   const remove = host.remove ?? deleteWithUndo;
   const counts = { deleted: 0, favorited: 0 };
@@ -96,7 +106,7 @@ export function installOrganize(host: OrganizeHost): () => void {
     showCounts();
   };
 
-  deleteButton.addEventListener("click", () => {
+  const deleteCurrent = (): void => {
     const clip = host.currentClip();
     if (!clip) return;
     if (!clip.deletable) { host.notify("这个视频不能删除"); return; }
@@ -111,8 +121,9 @@ export function installOrganize(host: OrganizeHost): () => void {
         return () => { counts.deleted = Math.max(0, counts.deleted - 1); showCounts(); restore(); };
       },
     });
-  });
-  favoriteButton.addEventListener("click", () => {
+  };
+  deleteButton.addEventListener("click", deleteCurrent);
+  const collectCurrent = (): void => {
     const clip = host.currentClip();
     if (!clip) return;
     asking = clip.id;
@@ -124,7 +135,8 @@ export function installOrganize(host: OrganizeHost): () => void {
       asking = null;
       advance();
     }
-  });
+  };
+  favoriteButton.addEventListener("click", collectCurrent);
   const onSheetClose = (): void => {
     if (!on || asking === null) return;
     const done = asking === host.currentClip()?.id;
@@ -151,12 +163,17 @@ export function installOrganize(host: OrganizeHost): () => void {
   if (info) info.after(bar); else host.panel?.append(bar);
   setMode(stored());
 
-  return () => {
-    window.clearTimeout(timer);
-    host.root.removeEventListener("playersheetclose", onSheetClose);
-    bar.remove();
-    modeEntry.remove();
-    tagEntry.remove();
-    host.root.classList.remove("organizing");
+  return {
+    isOn: () => on,
+    deleteCurrent,
+    collectCurrent,
+    uninstall: () => {
+      window.clearTimeout(timer);
+      host.root.removeEventListener("playersheetclose", onSheetClose);
+      bar.remove();
+      modeEntry.remove();
+      tagEntry.remove();
+      host.root.classList.remove("organizing");
+    },
   };
 }

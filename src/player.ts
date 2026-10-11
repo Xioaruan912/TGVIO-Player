@@ -38,6 +38,8 @@ export class VideoPool {
   onError: ((mediaId: string) => void) | null = null;
   onUnusableFrame: ((mediaId: string) => void) | null = null;
   shouldContinue: (() => boolean) | null = null;
+  /** Asked when the current clip ends; true means the feed moved on, so no restart. */
+  onEnded: ((video: HTMLVideoElement) => boolean) | null = null;
 
   constructor(private readonly chosenRate: () => number = () => 1) {
     for (let i = 0; i < SLOT_COUNT; i += 1) {
@@ -54,6 +56,7 @@ export class VideoPool {
       });
       video.addEventListener("ended", () => {
         if (video === this.current && this.shouldContinue?.()) {
+          if (this.onEnded?.(video)) return;
           video.currentTime = 0;
           void video.play().catch(() => undefined);
         }

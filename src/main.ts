@@ -1362,7 +1362,7 @@ function openSettings(): void {
   if (!shell) return;
   const body = buildSettingsView({ muted, quality, currentClip: feedView?.clipAt(activeIndex) ?? null,
     feedMeter, DEBUG, toggleSound, openSettings, openCacheModeSettings, openReadModeSettings, openGestureGuide,
-    openStorageSettings, setQuality, logout: () => api.logout().finally(() => window.location.reload()) });
+    openStorageSettings, setQuality, sheet: shell, logout: () => api.logout().finally(() => window.location.reload()) });
   openSheetKind = "settings";
   openSheet(shell, "设置", body);
   setActiveNav(shell, "settings");

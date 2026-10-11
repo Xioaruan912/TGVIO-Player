@@ -28,3 +28,13 @@
 .storage-recovery summary::after { content: '+'; margin-left: auto; font-size: 20px; color: var(--primary); transition: rotate var(--dur-base) var(--ease-spring); }
 .storage-recovery[open] summary::after { content: '−'; }
 .storage-recovery p { font-size: 12px; line-height: 1.7; }
+
+/* Duplicate review: one card per group, copies side by side. */
+.duplicate-list { display: grid; gap: 14px; }
+.duplicate-group { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--glass-border); border-radius: var(--radius-lg); background: var(--glass-light); }
+.duplicate-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.duplicate-copy { display: grid; gap: 8px; align-content: start; }
+.duplicate-copy[hidden] { display: none; }
+.duplicate-preview { width: 100%; max-height: 50vh; border-radius: var(--radius); background: var(--media-bg); }
+.duplicate-status { margin: 0; color: var(--text-secondary); font-size: 13px; }
+.duplicate-status:empty { display: none; }

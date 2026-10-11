@@ -347,7 +347,7 @@ async function run() {
     muted: true, quality: "original", currentClip: clip, feedMeter: null, DEBUG: false,
     toggleSound: () => undefined, openSettings: () => undefined, openCacheModeSettings: () => undefined,
     openGestureGuide: () => undefined, openStorageSettings: () => undefined,
-    setQuality: () => undefined, logout: async () => undefined,
+    setQuality: () => undefined, logout: async () => undefined, sheet: shell,
   }));
   await pause();
   // The sheet is a body-level overlay now, so it is looked up from the shell's own sheet

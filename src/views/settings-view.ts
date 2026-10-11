@@ -8,6 +8,8 @@ import { installController } from "../install";
 import { readModeLabel, syncReadMode } from "./network-sheets";
 import { api } from "../api";
 import { watchedForgetRow } from "../watched";
+import { openDuplicateReview } from "../duplicates";
+import type { SheetHost } from "../components/sheet";
 
 export type SettingsViewActions = {
   muted: boolean;
@@ -23,6 +25,8 @@ export type SettingsViewActions = {
   openStorageSettings(): void;
   setQuality(quality: QualitySelection): void;
   logout(): Promise<void>;
+  /** Where sub-pages such as the duplicate review open; null before the shell exists. */
+  sheet: SheetHost | null;
 };
 
 export const SETTINGS_GROUP_PLAYBACK = "播放与手势";
@@ -34,7 +38,7 @@ export const SETTINGS_GROUP_ACCESS = "访问管理";
 /** Presentation only: playback, API and account effects stay with the application. */
 export function buildSettingsView(actions: SettingsViewActions): Node[] {
   const { muted, quality, currentClip, feedMeter, DEBUG, toggleSound, openSettings,
-    openCacheModeSettings, openReadModeSettings, openGestureGuide, openStorageSettings, setQuality, logout } = actions;
+    openCacheModeSettings, openReadModeSettings, openGestureGuide, openStorageSettings, setQuality, logout, sheet } = actions;
   const body: Node[] = [];
 
   body.push(sheetSection(SETTINGS_GROUP_PLAYBACK));
@@ -199,6 +203,11 @@ export function buildSettingsView(actions: SettingsViewActions): Node[] {
     title: "收藏与 WebDAV",
     sub: "收藏保存在 Player 本地库；这里配置备份位置与新 VPS 恢复",
     onPick: openStorageSettings,
+  }));
+  if (sheet) body.push(sheetRow({
+    title: "疑似重复视频",
+    sub: "封面和时长几乎相同的视频，保留一个，删除其余",
+    onPick: () => void openDuplicateReview(sheet, openSettings),
   }));
 
   body.push(sheetSection(SETTINGS_GROUP_ACCESS));

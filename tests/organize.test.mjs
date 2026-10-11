@@ -34,9 +34,11 @@ const privacy = await load("cover-privacy.ts", { element, icon, sheetToggle });
 const actionButton = (stack, label) => { const b = element("button", "action-btn"); b.append(element("small", "action-label", label)); return b; };
 const iconStack = () => element("span", "icon-stack");
 const opened = [];
+const offered = [];
 const { installOrganize } = await load("organize.ts", {
   actionButton, iconStack, element, icon, applyCoverPrivacy: privacy.applyCoverPrivacy,
   deleteWithUndo: null, openTagSheet: (host, id) => { opened.push(id); },
+  offerCollections: id => { offered.push(id); return true; },
 });
 
 const find = (node, predicate) => [node, ...node.children.flatMap(child => find(child, predicate))].filter(predicate);
@@ -96,10 +98,13 @@ test("organize mode deletes, favourites and moves on, with honest counts", async
   assert.match(find(bar, n => n.className === "organize-status")[0].textContent, /已删 0/, "an undo uncounts it");
 
   host.index = 1;
-  byText(bar, "收藏").dispatch("click");
-  assert.ok(host.favoriteButton.classList.contains("selected"));
+  byText(bar, "加入集合").dispatch("click");
+  assert.ok(host.favoriteButton.classList.contains("selected"), "加入集合 favourites the clip");
   timers.splice(0).forEach(fn => fn());
-  assert.equal(host.index, 2, "a favourite moves on by itself");
+  assert.equal(host.index, 1, "it waits for the 加入集合 sheet");
+  host.root.dispatch("playersheetclose");
+  timers.splice(0).forEach(fn => fn());
+  assert.equal(host.index, 2, "closing that sheet moves on");
   assert.match(find(bar, n => n.className === "organize-status")[0].textContent, /已收藏 1/);
 
   byText(bar, "删除").dispatch("click");
@@ -112,12 +117,13 @@ test("organize mode deletes, favourites and moves on, with honest counts", async
   assert.equal(find(host.panel, n => n.className === "organize-bar").length, 0);
 });
 
-test("a favourite already set is not undone by 收藏", () => {
-  store.clear(); timers.length = 0;
+test("an existing favourite is asked about collections straight away, never unfavourited", () => {
+  store.clear(); timers.length = 0; offered.length = 0;
   const host = makeHost([clip("a"), clip("b")]);
   host.favoriteButton.classList.add("selected");
   installOrganize(host);
   byText(host.actionRail, "整理模式").dispatch("click");
-  byText(find(host.panel, n => n.className === "organize-bar")[0], "收藏").dispatch("click");
+  byText(find(host.panel, n => n.className === "organize-bar")[0], "加入集合").dispatch("click");
   assert.ok(host.favoriteButton.classList.contains("selected"));
+  assert.deepEqual(offered, ["a"]);
 });

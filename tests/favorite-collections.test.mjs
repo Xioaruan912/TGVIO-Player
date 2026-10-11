@@ -36,7 +36,7 @@ globalThis.__favDeps = {
   api: null, CollectionsController, favoriteMutations, element, ...sheet,
   buildNameSheet: options => { const form = element("div", "collection-name-form"); form.submit = name => options.onSubmit(name, element("p")); return form; },
 };
-const { installFavoriteCollections } = await import("data:text/javascript;base64," + Buffer.from(
+const { installFavoriteCollections, offerCollections } = await import("data:text/javascript;base64," + Buffer.from(
   "const { api, CollectionsController, favoriteMutations, element, openSheet, closeSheet, sheetNote, sheetChoice, buildNameSheet } = globalThis.__favDeps;\n"
   + await transpile("favorite-collections.ts")).toString("base64"));
 
@@ -102,13 +102,13 @@ test("unfavouriting or a failed favourite never asks", async () => {
   assert.equal(sheets.length, 0, "an uninstalled offer no longer listens");
 });
 
-test("a favourite made in 整理模式 does not ask", async () => {
+test("a clip that is already a favourite can be offered the sheet directly", async () => {
   sheets.length = 0;
-  const root = document.createElement("main");
-  root.classList.add("organizing");
-  const uninstall = installFavoriteCollections({ root }, () => {}, new CollectionsController(fakeSource()));
-  settle("m5", true);
+  assert.equal(offerCollections("x"), false, "nothing to offer before install");
+  const uninstall = installFavoriteCollections({}, () => {}, new CollectionsController(fakeSource()));
+  assert.equal(offerCollections("m6"), true);
   await flush();
-  assert.equal(sheets.length, 0);
+  assert.equal(sheets.at(-1).title, "加入集合");
   uninstall();
+  assert.equal(offerCollections("m7"), false, "an uninstalled sheet is not offered");
 });

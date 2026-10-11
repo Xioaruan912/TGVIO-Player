@@ -11,9 +11,18 @@ import type { CollectionDto } from "./types";
  *
  * The bottom sheet lists the hand-picked (manual) collections, makes a new one on the
  * spot, or is dismissed. Each collection keeps its members in its own storage folder,
- * so the choice is where the copy will live. Unfavouriting never asks anything, and
- * neither does a favourite made in 整理模式.
+ * so the choice is where the copy will live. Unfavouriting never asks anything.
  */
+let offerHandler: ((mediaId: string) => void) | null = null;
+
+/** Ask about collections for a clip that is already a favourite (整理模式's 加入集合).
+ *  False when no sheet is installed. */
+export function offerCollections(mediaId: string): boolean {
+  if (!offerHandler) return false;
+  offerHandler(mediaId);
+  return true;
+}
+
 export function installFavoriteCollections(
   host: SheetHost,
   notify: (message: string) => void,
@@ -23,8 +32,7 @@ export function installFavoriteCollections(
   const unsubscribe = favoriteMutations.subscribe(
     () => undefined,
     (mediaId, result) => {
-      // 整理模式 favourites one clip per press; asking each time would stall it.
-      if (result?.favorite && !host.root?.classList.contains("organizing")) void offer(mediaId);
+      if (result?.favorite) void offer(mediaId);
     },
   );
 
@@ -71,5 +79,11 @@ export function installFavoriteCollections(
     notify(added ? `已加入「${collection.name}」` : "加入集合失败，请稍后重试");
   }
 
-  return () => { generation++; unsubscribe(); };
+  const handler = (mediaId: string): void => void offer(mediaId);
+  offerHandler = handler;
+  return () => {
+    generation++;
+    unsubscribe();
+    if (offerHandler === handler) offerHandler = null;
+  };
 }

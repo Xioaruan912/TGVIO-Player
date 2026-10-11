@@ -5,14 +5,16 @@ import { applyCoverPrivacy } from "./cover-privacy";
 import { icon, type IconName } from "./icons";
 import { deleteWithUndo, type DeletionResult, type DeletionTarget } from "./media-deletion";
 import { openTagSheet } from "./tags";
+import { offerCollections } from "./favorite-collections";
 import type { Clip } from "./types";
 
 /**
- * 整理模式 for the short-video feed: three large buttons under the picture -
- * 删除 (with the usual undo, but without the confirmation dialog), 收藏 and
- * 下一个 - and a running count. A delete or a favourite moves on by itself, so a
- * pile of new clips can be sorted one thumb-press each. 标签 opens the current
- * clip's tags. The 更多 menu gains 整理模式 and 标签 entries.
+ * 整理模式 for the short-video feed: large buttons under the picture - 删除
+ * (with the usual undo, but without the confirmation dialog), 加入集合 and
+ * 下一个 - and a running count. 加入集合 favourites the clip and asks which
+ * collection to put it in (an existing favourite is asked straight away); once
+ * that sheet closes, the feed moves on. A delete moves on by itself. 标签 opens
+ * the current clip's tags. The 更多 menu gains 整理模式 and 标签 entries.
  *
  * The feed keeps its own behaviour; this module only calls what the host hands it.
  */
@@ -56,6 +58,9 @@ export function installOrganize(host: OrganizeHost): () => void {
   const counts = { deleted: 0, favorited: 0 };
   let on = false;
   let timer = 0;
+  // The clip whose 加入集合 sheet is open: when that sheet closes (a collection
+  // picked, 不加入, or dismissed), the feed moves on.
+  let asking: string | null = null;
 
   const bar = element("div", "organize-bar");
   bar.setAttribute("role", "group");
@@ -67,7 +72,7 @@ export function installOrganize(host: OrganizeHost): () => void {
   head.append(status, exit);
   const deleteButton = bigButton("trash", "删除", "organize-delete");
   const tagButton = bigButton("tag", "标签", "organize-tag");
-  const favoriteButton = bigButton("heart", "收藏", "organize-favorite");
+  const favoriteButton = bigButton("heart", "加入集合", "organize-favorite");
   const nextButton = bigButton("play", "下一个", "organize-next");
   const row = element("div", "organize-row");
   row.append(deleteButton, tagButton, favoriteButton, nextButton);
@@ -95,6 +100,7 @@ export function installOrganize(host: OrganizeHost): () => void {
     const clip = host.currentClip();
     if (!clip) return;
     if (!clip.deletable) { host.notify("这个视频不能删除"); return; }
+    asking = null;
     counts.deleted += 1;
     showCounts();
     // The removal itself shows the next clip; an undo puts this one back and uncounts it.
@@ -107,15 +113,26 @@ export function installOrganize(host: OrganizeHost): () => void {
     });
   });
   favoriteButton.addEventListener("click", () => {
-    if (!host.currentClip()) return;
+    const clip = host.currentClip();
+    if (!clip) return;
+    asking = clip.id;
     if (!host.favoriteButton.classList.contains("selected")) {
-      host.toggleFavorite();
+      host.toggleFavorite(); // a confirmed favourite opens the 加入集合 sheet
       counts.favorited += 1;
       showCounts();
+    } else if (!offerCollections(clip.id)) {
+      asking = null;
+      advance();
     }
-    advance();
   });
-  nextButton.addEventListener("click", () => host.next());
+  const onSheetClose = (): void => {
+    if (!on || asking === null) return;
+    const done = asking === host.currentClip()?.id;
+    asking = null;
+    if (done) advance();
+  };
+  host.root.addEventListener("playersheetclose", onSheetClose);
+  nextButton.addEventListener("click", () => { asking = null; host.next(); });
   const openTags = (): void => {
     const clip = host.currentClip();
     if (clip) void openTagSheet(host.sheet, clip.id, host.notify);
@@ -136,6 +153,7 @@ export function installOrganize(host: OrganizeHost): () => void {
 
   return () => {
     window.clearTimeout(timer);
+    host.root.removeEventListener("playersheetclose", onSheetClose);
     bar.remove();
     modeEntry.remove();
     tagEntry.remove();

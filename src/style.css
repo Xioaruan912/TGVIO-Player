@@ -11,6 +11,8 @@
    component `background:` shorthands without editing every component file. */
 @import "./styles/motion.css";
 @import "./styles/glass.css";
+/* The cinema layout restates shapes last, so it wins over every component file. */
+@import "./styles/cinema.css";
 
 /* Attribute semantics always win over component and playback-state selectors. */
 [hidden] { display: none !important; }

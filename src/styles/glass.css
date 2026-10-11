@@ -1,30 +1,19 @@
-/* Aurora Glass ambience.
-   The aurora is a few large, soft colour fields on the page background, never on
-   the picture: every media surface paints its own opaque background above it.
-   Glass surfaces and the gradient heading ink are composed here so the look can be
-   tuned in one place without touching the token or layout layers. */
+/* Cinema surfaces.
+   Everything sits on one flat near-black. There is no glass, no aurora, no glow:
+   chrome is thin type and hairlines. Translucency is kept only where something
+   moves underneath (menus, toasts, the scrub preview, the selection bar), so text
+   stays readable over any frame. Layout lives in cinema.css. */
 
 .app-shell, .browse-page, .large-player, .login-shell {
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(60% 45% at 12% -8%, rgba(168, 120, 31, 0.22), transparent 70%),
-    radial-gradient(50% 40% at 100% 4%, rgba(120, 78, 20, 0.16), transparent 70%),
-    radial-gradient(70% 50% at 50% 110%, rgba(201, 162, 39, 0.14), transparent 72%);
-  background-repeat: no-repeat;
+  background: var(--bg);
 }
 
-/* One glass recipe for every floating surface. */
-/* Not the feed header: it floats on the picture and must never blur the frame. */
-/* Not the sheet card either: backdrop-filter makes an element the containing block
-   of its fixed descendants, and the sheet's own backdrop already blurs the page. */
-.bottom-nav, .desktop-nav, .browse-header, .toast,
-.action-menu, .audio-warning-panel, .login-panel, .scrub-bubble, .large-controls,
-.library-selection, .settings-card {
+.toast, .action-menu, .audio-warning-panel, .scrub-bubble, .library-selection {
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
 }
 
-/* Primary actions carry the gradient and its glow; only white ink sits on it. */
+/* Primary actions are inverted: white fill, black ink. */
 .logo,
 .transport-play,
 .large-play,
@@ -34,38 +23,25 @@
 .library-selection > .library-button:first-child,
 .storage-settings-actions button[type="submit"],
 .audio-warning-confirm {
-  background-image: var(--accent-fill);
+  background: var(--accent-fill);
   color: var(--accent-ink);
-  box-shadow: var(--accent-glow);
-}
-/* The animated ones carry a light band above the gradient for motion.css to sweep. */
-.transport-play, .large-play, .login-submit, .large-privacy-play, .gesture-play {
-  background-image: linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, .26) 50%, transparent 62%), var(--accent-fill);
-  background-size: 240% 100%, 100% 100%;
-  background-repeat: no-repeat;
+  box-shadow: none;
 }
 
-/* Gradient heading ink. The plain colour is the default, so the text stays
-   visible anywhere a clipped background cannot paint. */
+/* Headings are plain ink; hierarchy comes from size, weight and tracking. */
 .browse-title,
 .sheet-title,
 .login-title,
 .desktop-brand strong,
 .brand-name,
 .app-header-context {
-  color: var(--primary-bright);
+  color: var(--text);
 }
-@supports (background-clip: text) or (-webkit-background-clip: text) {
-  .browse-title,
-  .sheet-title,
-  .login-title,
-  .desktop-brand strong,
-  .brand-name,
-  .app-header-context {
-    background-image: var(--heading-ink);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+
+@media (prefers-reduced-transparency: reduce) {
+  .toast, .action-menu, .audio-warning-panel, .scrub-bubble, .library-selection {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--glass-strong);
   }
 }

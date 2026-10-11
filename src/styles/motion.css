@@ -71,8 +71,8 @@
   height: var(--ind-h, 0px);
   translate: var(--ind-x, 0px) var(--ind-y, 0px);
   border-radius: var(--radius-pill);
-  background: var(--accent-fill);
-  box-shadow: var(--accent-glow);
+  background: var(--primary);
+  box-shadow: none;
   pointer-events: none;
 }
 .sliding-indicator[data-ready="true"] {
@@ -81,11 +81,7 @@
 /* The active tab's icon hops once as the pill lands under it. */
 .nav-btn.active .icon { animation: nav-bounce var(--dur-slow) var(--ease-out-quint); }
 
-/* ── 3. A light sheen crossing primary actions every few seconds ──────────── */
-/* The two background layers are declared in glass.css; only the position moves. */
-.transport-play, .large-play, .login-submit, .large-privacy-play, .gesture-play {
-  animation: sheen 5.5s var(--ease-out-quint) infinite;
-}
+/* ── 3. (retired) No idle sheen: motion only answers an action. */
 
 /* ── 4. Cover cards: staggered entrance, pointer tilt and spotlight ───────── */
 .cover-grid > .cover-tile { animation: rise-in var(--dur-slow) var(--ease-spring-soft) backwards; }
@@ -141,7 +137,7 @@
 @keyframes fx-ring { from { opacity: .9; transform: scale(.3); } to { opacity: 0; transform: scale(1.6); border-width: 0; } }
 .fx-burst-dot { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--dot-color, var(--favorite)); animation: fx-dot 640ms var(--ease-out-quint) both; }
 @keyframes fx-dot { from { opacity: 1; transform: rotate(var(--angle)) translateY(0) scale(1); } to { opacity: 0; transform: rotate(var(--angle)) translateY(calc(var(--dist) * -1)) scale(.3); } }
-.fx-ripple { position: absolute; z-index: 6; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; background: radial-gradient(circle, rgba(250, 236, 200, .28), rgba(227, 192, 106, .10) 55%, transparent 70%); pointer-events: none; animation: fx-ripple 620ms var(--ease-out-quint) both; }
+.fx-ripple { position: absolute; z-index: 6; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; background: radial-gradient(circle, rgba(250, 236, 200, .28), rgba(var(--accent-rgb), .10) 55%, transparent 70%); pointer-events: none; animation: fx-ripple 620ms var(--ease-out-quint) both; }
 @keyframes fx-ripple { from { opacity: 1; transform: scale(.2); } to { opacity: 0; transform: scale(1.6); } }
 
 @media (prefers-reduced-motion: reduce) {

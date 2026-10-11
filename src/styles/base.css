@@ -1,83 +1,93 @@
-/* Aurora Glass, dark gold. Tokens are the single source of truth; component files
-   only reference them. Hierarchy comes from frosted glass over a warm near-black,
-   with one champagne → gold → bronze gradient reserved for primary actions. */
+@font-face {
+  font-family: "Geist";
+  src: url("../assets/fonts/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  /* Latin, digits and punctuation only: Chinese falls through to the system face. */
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2190-2199, U+2212, U+2215;
+}
+
+/* Cinema. Near-black, white and neutral greys with one red. The picture is the
+   only colour that matters; chrome is thin lines and type. Primary actions are
+   white with black ink. Red marks state: the active tab, progress, a favourite,
+   a delete. Tokens are the single source of truth; component files reference them. */
 :root {
   color-scheme: dark;
 
-  /* Accent family. --primary is the light gold used as ink on dark surfaces
-     (icons, active labels, progress); --accent-fill is the gold gradient primary
-     actions are painted with, and only --accent-ink (near-black) sits on top of it:
-     white on gold fails AA. */
-  --primary: #e3c06a;
-  --primary-hover: #ecd08a;
-  --primary-bright: #faecc8;
-  --primary-soft: rgba(227, 192, 106, 0.16);
+  --accent-rgb: 232, 90, 80;
+  /* Red as ink on dark surfaces: active labels, progress, icons (>= 4.5:1). */
+  --primary: #e85a50;
+  --primary-hover: #ef6e64;
+  --primary-bright: #f4f4f2;
+  --primary-soft: rgba(var(--accent-rgb), 0.14);
   --accent: var(--primary);
-  --accent-soft: rgba(227, 192, 106, 0.24);
-  --accent-pink: #ff6b81;
-  --accent-fill: linear-gradient(135deg, #f7e2a0 0%, #d9b048 45%, #b8892b 100%);
-  --accent-ink: #1a1405;
+  --accent-soft: rgba(var(--accent-rgb), 0.22);
+  --accent-pink: var(--primary);
+  /* Primary actions are inverted: a white fill with black ink (17:1). */
+  --accent-fill: #f2f2f0;
+  --accent-ink: #0a0a0a;
   --on-accent: var(--accent-ink);
-  --accent-glow: 0 8px 28px rgba(201, 162, 39, 0.42), 0 2px 10px rgba(168, 120, 31, 0.35);
-  --progress-fill: linear-gradient(90deg, #a8781f, #e6c35c 60%, #f7e2a0);
-  /* Headings paint this gradient as their ink; every stop clears 10:1 on --bg. */
-  --heading-ink: linear-gradient(100deg, #faecc8 0%, #ecd08a 45%, #f3d9a0 100%);
+  --accent-glow: none;
+  --progress-fill: var(--primary);
+  --heading-ink: var(--text);
 
-  --bg: #0b0a08;
-  --bg-deep: #060504;
-  --surface: #15130f;
-  --surface-raised: #1e1b15;
-  --surface-sunken: #0e0d0a;
-  --surface-soft: #1a1712;
+  --bg: #0a0a0a;
+  --bg-deep: #050505;
+  --surface: #121212;
+  --surface-raised: #1a1a1a;
+  --surface-sunken: #0d0d0d;
+  --surface-soft: #161616;
 
-  /* Frosted glass. Translucent enough to show the aurora or the picture behind
-     it, opaque enough that its own text never depends on what is underneath. */
-  --glass: rgba(24, 20, 13, 0.58);
-  --glass-strong: rgba(16, 14, 9, 0.84);
-  --glass-light: rgba(255, 255, 255, 0.08);
-  --glass-hover: rgba(255, 255, 255, 0.14);
-  --glass-border: rgba(255, 255, 255, 0.12);
+  /* Chrome over the picture only. */
+  --glass: rgba(10, 10, 10, 0.62);
+  --glass-strong: rgba(12, 12, 12, 0.96);
+  --glass-light: rgba(255, 255, 255, 0.05);
+  --glass-hover: rgba(255, 255, 255, 0.09);
+  --glass-border: rgba(255, 255, 255, 0.10);
   --glass-border-strong: rgba(255, 255, 255, 0.22);
-  --glass-blur: blur(22px) saturate(160%);
-  --glass-edge: inset 0 1px 0 rgba(255, 255, 255, 0.10);
-  --glass-control: rgba(10, 9, 6, 0.55);
+  --glass-blur: blur(16px);
+  --glass-edge: none;
+  --glass-control: rgba(10, 10, 10, 0.5);
 
   /* Floating chrome over the picture keeps its own scrims: the frame below can be
      any brightness. The worst case (pure white frame) is pinned by a test. */
-  --media-scrim-top: linear-gradient(180deg, rgba(6, 5, 3, 0.94) 0%, rgba(6, 5, 3, 0.86) 55%, rgba(6, 5, 3, 0) 100%);
-  --media-scrim-bottom: linear-gradient(0deg, rgba(6, 5, 3, 0.94) 0%, rgba(6, 5, 3, 0.84) 50%, rgba(6, 5, 3, 0) 100%);
+  --media-scrim-top: linear-gradient(180deg, rgba(5, 5, 5, 0.94) 0%, rgba(5, 5, 5, 0.86) 55%, rgba(5, 5, 5, 0) 100%);
+  --media-scrim-bottom: linear-gradient(0deg, rgba(5, 5, 5, 0.95) 0%, rgba(5, 5, 5, 0.86) 50%, rgba(5, 5, 5, 0) 100%);
 
-  --text: #f8f3e6;
-  --text-secondary: #d4c9ae;
-  /* 6.3:1 on --surface-raised: 12px metadata stays WCAG AA on every surface. */
-  --text-muted: #a89c80;
+  --text: #f2f2f0;
+  --text-secondary: #a8a8a6;
+  /* 5.5:1 on --surface-raised: 12px metadata stays WCAG AA on every surface. */
+  --text-muted: #919190;
 
-  --border: rgba(255, 255, 255, 0.10);
-  --border-strong: rgba(255, 255, 255, 0.20);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.2);
   --hairline: var(--border);
   --hairline-strong: var(--border-strong);
-  /* 3.2:1 on --surface: the unfilled slider range stays perceivable. */
-  --track: #6e6450;
+  /* 3.5:1 on --surface: the unfilled slider range stays perceivable. */
+  --track: #6a6a68;
 
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #ff7a95;
-  /* Filled destructive buttons use the deeper red: white on it is 5.6:1. */
-  --danger-fill: #c81e4d;
-  --favorite: #ff6b81;
+  --success: #6cc08f;
+  --warning: #e0b04c;
+  --danger: #e85a50;
+  /* Filled destructive buttons: white on it is 5.9:1. */
+  --danger-fill: #c0271c;
+  --favorite: #e85a50;
 
   --media-bg: #000000;
-  --privacy-cover: #0b0a08;
+  --privacy-cover: #0a0a0a;
 
-  --radius-sm: 10px;
-  --radius: 14px;
-  --radius-lg: 20px;
-  --radius-panel: 28px;
+  /* Shape rule: almost square. Controls 6px, cards 8px, covers 4px, sheets 12px
+     at the top only, icon buttons have no shape at all (bare glyphs). */
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-panel: 12px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.45);
-  --shadow-card: 0 12px 32px rgba(0, 0, 0, 0.5);
-  --shadow-panel: 0 30px 80px rgba(0, 0, 0, 0.65);
+  --shadow-sm: none;
+  --shadow-card: none;
+  --shadow-panel: 0 -1px 0 rgba(255, 255, 255, 0.08);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -112,7 +122,7 @@
   --shadow: var(--shadow-panel);
   --ease: var(--ease-ui);
 
-  --font-sans: "Inter", "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Noto Sans SC",
+  --font-sans: "Geist", "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Noto Sans SC",
     "Source Han Sans SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 
@@ -124,9 +134,9 @@ button, input, summary { font: inherit; }
 button { color: inherit; cursor: pointer; background: none; border: 0; padding: 0; touch-action: manipulation; transition: background var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease), box-shadow var(--duration-fast) var(--ease), scale var(--dur-fast) var(--ease-spring); }
 /* .6 instead of .48: a disabled control still has to be readable. */
 button:disabled { cursor: default; opacity: .6; }
-/* Every press gets a springy squash; the spring token supplies the bounce back. */
-button:not(:disabled):active, summary:active { scale: .94; }
-button:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--primary-bright); outline-offset: 3px; box-shadow: 0 0 0 6px rgba(227, 192, 106, .22); }
+/* Every press gets a small physical push. */
+button:not(:disabled):active, summary:active { scale: .98; }
+button:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; box-shadow: none; }
 input { min-width: 0; }
 /* An inert slider (no duration yet) must not advertise a draggable cursor. */
 input:disabled { cursor: default; }
@@ -135,7 +145,7 @@ input:disabled { cursor: default; }
 .icon-stack > .icon { grid-area: 1 / 1; }
 .icon-filled, .icon-muted, .ind-play, .ind-pause { display: none; }
 .logo { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 12px; background: var(--accent-fill); color: var(--accent-ink); box-shadow: var(--accent-glow); }
-.skeleton { border-radius: var(--radius); background: linear-gradient(100deg, var(--surface-raised) 30%, #2a2418 48%, var(--surface-raised) 66%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; min-height: 20px; }
+.skeleton { border-radius: var(--radius); background: linear-gradient(100deg, var(--surface-raised) 30%, #262626 48%, var(--surface-raised) 66%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; min-height: 20px; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--space-3); }
 .tabs, .chips { display: flex; gap: var(--space-2); overflow-x: auto; padding: var(--space-1); }
 .tab, .chip { min-height: 44px; padding: 0 var(--space-4); border-radius: var(--radius-pill); background: var(--glass-light); color: var(--text-secondary); }

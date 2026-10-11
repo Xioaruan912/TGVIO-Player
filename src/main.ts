@@ -33,7 +33,7 @@ import { prefs, setPref } from "./settings";
 import { initialMutedState, mutedForNextVideo, rememberMuted } from "./sound-policy";
 import { installController } from "./install";
 import { playerMediaSession } from "./media-session";
-import { qualityLabel, qualityOptions, resolveStreamUrl } from "./quality";
+import { qualityLabel, resolveStreamUrl } from "./quality";
 import type { Clip, QualitySelection } from "./types";
 import {
   buildError,
@@ -47,15 +47,8 @@ import {
   paintSeek,
   setActiveNav,
   setControlsVisible,
-  hideIndicator,
   setFavoriteButton,
   setSoundButton,
-  sheetNote,
-  sheetChoice,
-  sheetRow,
-  sheetSection,
-  sheetToggle,
-  showIndicator,
   showGestureGuide,
   toast,
   type Shell,

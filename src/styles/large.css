@@ -76,7 +76,8 @@
 .scrub-video { position: fixed; left: -10000px; top: 0; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
 #feed { touch-action: pan-y; }
 .library-playback { display: contents; }
-.library-playback-nav { display: grid; grid-template-columns: auto minmax(24px, 1fr) auto auto; gap: 6px; align-items: center; border-top: 1px solid var(--border); padding-top: 8px; }
+.library-playback-nav { display: flex; gap: 6px; align-items: center; border-top: 1px solid var(--border); padding-top: 8px; }
+.library-playback-nav .library-play-position { flex: 1 1 24px; }
 .library-playback-nav button { min-width: 44px; min-height: 44px; padding: 6px 12px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); color: var(--text); background: var(--glass-light); font-size: 12px; font-weight: 650; }
 .library-playback-nav button:disabled { opacity: .45; }
 .library-play-position { min-width: 0; font-size: 12px; color: var(--text-secondary); text-align: center; }
@@ -117,6 +118,29 @@
   .large-context { display: none; }
   .large-controls > .panel-cache { justify-self: stretch; }
   .large-player .scrub-bubble { bottom: 24px; left: 32%; }
+}
+
+/* A short clip played from favourites or the library, on a phone held upright:
+   one slim control strip instead of the card, so a 9:16 picture gets almost the
+   whole screen. Captions go (every button keeps its aria-label), the transport is
+   one row, and the cache readout stays on the feed. */
+@media (max-width: 899px) and (orientation: portrait) {
+  .library-playback .large-player[data-clip-category="short"] .large-controls { gap: 0; margin: 0; padding: 0 10px calc(4px + var(--safe-bottom)); border: 0; border-radius: 0; background: var(--bg); box-shadow: none; animation: none; }
+  .library-playback .large-player[data-clip-category="short"] .large-progress,
+  .library-playback .large-player[data-clip-category="short"] .large-seek { height: 30px; min-height: 30px; }
+  .library-playback .large-player[data-clip-category="short"] .large-time-row { margin-top: -6px; font-size: 11px; }
+  .library-playback .large-player[data-clip-category="short"] .large-action-row { flex-wrap: nowrap; justify-content: space-between; gap: 2px; }
+  .library-playback .large-player[data-clip-category="short"] .large-action-row::before,
+  .library-playback .large-player[data-clip-category="short"] .large-controls > .panel-cache,
+  .library-playback .large-player[data-clip-category="short"] .large-action-row .control-caption { display: none; }
+  .library-playback .large-player[data-clip-category="short"] .large-btn { min-width: 40px; min-height: 44px; padding: 2px 4px; }
+  .library-playback .large-player[data-clip-category="short"] .large-play { width: 44px; height: 44px; min-width: 44px; margin-inline: 0; }
+  .library-playback .large-player[data-clip-category="short"] .large-btn.large-quality { min-height: 36px; padding: 0 10px; }
+  .library-playback .large-player[data-clip-category="short"] .rate-toggle { min-width: 40px; min-height: 36px; padding: 4px 10px; }
+  .library-playback .large-player[data-clip-category="short"] .large-more .media-actions-toggle { min-height: 44px; }
+  .library-playback .large-player[data-clip-category="short"] .large-more .media-actions-toggle > .icon { width: 36px; height: 36px; padding: 8px; }
+  .library-playback .large-player[data-clip-category="short"] .library-playback-nav { gap: 4px; border-top: 0; padding-top: 2px; }
+  .library-playback .large-player[data-clip-category="short"] .library-playback-nav button { min-height: 36px; padding: 4px 10px; }
 }
 
 /* The speed control is a disclosure like the 更多 menu, sized like the transport buttons. */

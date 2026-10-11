@@ -194,3 +194,15 @@ test("destroy releases the shared deadline and stale timers cannot fire", () => 
   advance(600_000);
   assert.equal(first.locks, 0);
 });
+
+test("a clip from an archive folder offers its folder, and only then", () => {
+  players = []; const opened = []; const { clock } = fakeClock();
+  const withGroup = { id: "a", category: "short", groups: [{ id: "g", label: "2026-10-01" }] };
+  new LibraryPlayback([withGroup, { id: "b", category: "short", groups: [] }],
+    { ...callbacks(), onOpenGroup: item => opened.push(item.id) }, { idleClock: clock });
+  assert.equal(players[0].root.dataset.clipCategory, "short");
+  clickText(players[0].root, "同组视频");
+  assert.deepEqual(opened, ["a"]);
+  clickText(players[0].root, "下一条");
+  assert.equal(all(players[1].root).some(node => node.textContent === "同组视频"), false);
+});

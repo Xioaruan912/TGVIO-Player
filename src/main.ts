@@ -1308,7 +1308,7 @@ function createCollectionPlayback(syncPage: (active: boolean) => void): {
     shell.root.inert = true;
     adaptiveCache.update({ playbackPressure: true });
     player = new LibraryPlayback(clips, {
-      onClose: () => stop(),
+      onClose: () => stop(), onOpenGroup: clip => { stop(); openLibrary({ mediaId: clip.id }); },
       onPlayer: instance => { largePlayer = instance; },
       onProgress: (clip, position, duration, force) => {
         if (clip.category === "long") saveLongVideoProgress(clip.id, position, duration, force);

@@ -9,6 +9,8 @@ type Callbacks = {
   onPlayer: (player: LargePlayer | null) => void;
   onProgress?: (clip: Clip, position: number, duration: number, force: boolean) => void;
   onDeleted?: (clip: Clip) => void;
+  /** Leaves the playback for the archive folder the clip came from. */
+  onOpenGroup?: (clip: Clip) => void;
 };
 
 type Options = {
@@ -85,9 +87,18 @@ export class LibraryPlayback {
       if (this.closed || this.player !== player || !this.playlist.hasNext) return;
       this.idleWindow.touch(); if (this.playlist.move(1)) this.showCurrent();
     });
-    nav.append(previous, status, back, next);
+    nav.append(previous, status);
+    if (this.callbacks.onOpenGroup && clip.groups?.length) {
+      const group = element('button', 'library-play-group', '同组视频');
+      group.type = 'button';
+      group.addEventListener('click', () => { if (!this.closed) this.callbacks.onOpenGroup?.(clip); });
+      nav.append(group);
+    }
+    nav.append(back, next);
     player.root.querySelector('.large-controls')!.append(nav);
     player.root.dataset.playlistMedia = clip.id;
+    // Short clips get the compact phone layout (styles/large.css): the picture first.
+    player.root.dataset.clipCategory = clip.category;
     this.root.append(player.root);
     if (this.root.isConnected) player.root.querySelector<HTMLButtonElement>('.large-back')?.focus({ preventScroll: true });
   }

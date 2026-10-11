@@ -249,3 +249,59 @@ button.sheet-row:active { background: var(--glass-light); }
   .browse-title { font-size: 44px; line-height: 48px; }
   .sheet-card { border-radius: 0; border-left: 1px solid var(--border-strong); }
 }
+
+/* ── Motion: one-shot reveals, never on the picture ───────────────────────────
+   The same native techniques as a type-led landing page: a clip-path wipe on the
+   big titles, a single sweep of red light under the page header, and a short
+   staggered rise for the first screen of rows and covers. Everything runs once,
+   only on transform, opacity and clip-path, with `backwards` fill so nothing
+   lingers afterwards; style.css turns all of it off under reduced motion. Items
+   beyond the first twelve, and pages appended while scrolling, simply appear:
+   the scroll budget is not spent on decoration. */
+@keyframes cine-wipe { from { clip-path: inset(-.2em 100% -.3em 0); } to { clip-path: inset(-.2em -.1em -.3em 0); } }
+@keyframes cine-rise { from { opacity: 0; transform: translateY(12px); } }
+@keyframes cine-sweep { 0% { transform: translateX(-100%); opacity: 1; } 80% { opacity: 1; } 100% { transform: translateX(100%); opacity: 0; } }
+
+/* Page header: the title wipes in, then its context line and the tools rise. */
+.browse-page { animation: fade-in var(--dur-fast) var(--ease) backwards; }
+.browse-title { animation: cine-wipe 900ms var(--ease-out-quint) 80ms backwards; }
+.browse-eyebrow { animation: cine-rise 600ms var(--ease-out-quint) 380ms backwards; }
+.library-toolbar { animation: cine-rise 600ms var(--ease-out-quint) 460ms backwards; }
+.library-notice { animation: fade-in 600ms var(--ease) 560ms backwards; }
+.browse-header { position: relative; overflow: hidden; }
+.browse-header::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary) 60%, transparent);
+  transform: translateX(100%); opacity: 0; pointer-events: none;
+  animation: cine-sweep 1300ms var(--ease-out-quint) 260ms backwards;
+}
+
+/* The first screen of rows and covers rises in sequence. */
+.directory-grid > .library-index-row,
+.collection-list > .collection-row,
+.cover-grid > .cover-tile { animation: cine-rise 520ms var(--ease-out-quint) backwards; }
+.directory-grid > .library-index-row:nth-child(1), .collection-list > .collection-row:nth-child(1), .cover-grid > .cover-tile:nth-child(1) { animation-delay: 95ms; }
+.directory-grid > .library-index-row:nth-child(2), .collection-list > .collection-row:nth-child(2), .cover-grid > .cover-tile:nth-child(2) { animation-delay: 130ms; }
+.directory-grid > .library-index-row:nth-child(3), .collection-list > .collection-row:nth-child(3), .cover-grid > .cover-tile:nth-child(3) { animation-delay: 165ms; }
+.directory-grid > .library-index-row:nth-child(4), .collection-list > .collection-row:nth-child(4), .cover-grid > .cover-tile:nth-child(4) { animation-delay: 200ms; }
+.directory-grid > .library-index-row:nth-child(5), .collection-list > .collection-row:nth-child(5), .cover-grid > .cover-tile:nth-child(5) { animation-delay: 235ms; }
+.directory-grid > .library-index-row:nth-child(6), .collection-list > .collection-row:nth-child(6), .cover-grid > .cover-tile:nth-child(6) { animation-delay: 270ms; }
+.directory-grid > .library-index-row:nth-child(7), .collection-list > .collection-row:nth-child(7), .cover-grid > .cover-tile:nth-child(7) { animation-delay: 305ms; }
+.directory-grid > .library-index-row:nth-child(8), .collection-list > .collection-row:nth-child(8), .cover-grid > .cover-tile:nth-child(8) { animation-delay: 340ms; }
+.directory-grid > .library-index-row:nth-child(9), .collection-list > .collection-row:nth-child(9), .cover-grid > .cover-tile:nth-child(9) { animation-delay: 375ms; }
+.directory-grid > .library-index-row:nth-child(10), .collection-list > .collection-row:nth-child(10), .cover-grid > .cover-tile:nth-child(10) { animation-delay: 410ms; }
+.directory-grid > .library-index-row:nth-child(11), .collection-list > .collection-row:nth-child(11), .cover-grid > .cover-tile:nth-child(11) { animation-delay: 445ms; }
+.directory-grid > .library-index-row:nth-child(12), .collection-list > .collection-row:nth-child(12), .cover-grid > .cover-tile:nth-child(12) { animation-delay: 480ms; }
+.directory-grid > .library-index-row:nth-child(n+13),
+.collection-list > .collection-row:nth-child(n+13),
+.cover-grid > .cover-tile:nth-child(n+13) { animation: none; }
+
+/* Login: mark, title, line, form, one after another. */
+.login-brand { animation: fade-in 700ms var(--ease) 60ms backwards; }
+.login-title { animation: cine-wipe 1000ms var(--ease-out-quint) 180ms backwards; }
+.login-subtitle { animation: cine-rise 700ms var(--ease-out-quint) 520ms backwards; }
+.login-form { animation: cine-rise 700ms var(--ease-out-quint) 640ms backwards; }
+.login-footnote { animation: fade-in 700ms var(--ease) 820ms backwards; }
+
+/* Tabs answer a press: the label brightens as the red line slides under it. */
+.bottom-nav .nav-btn, .library-segments > .library-segment { transition: color var(--dur-base) var(--ease-out-quint); }

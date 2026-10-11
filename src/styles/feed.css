@@ -180,3 +180,16 @@
   .media-loading,
   .video-page .poster { transition: none; }
 }
+
+/* 整理模式 (organize.ts): three large buttons under the caption, above the progress. */
+.organize-bar { display: grid; gap: 6px; margin: 4px 0 6px; }
+.organize-bar[hidden] { display: none; }
+.organize-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.organize-status { margin: 0; font-size: 12px; color: var(--primary); font-weight: 650; }
+.organize-exit { min-height: 32px; padding: 4px 12px; border: 1px solid var(--glass-border); border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); font-size: 12px; }
+.organize-row { display: grid; grid-template-columns: 1.2fr .8fr 1.2fr 1fr; gap: 8px; }
+.organize-btn { min-height: 56px; display: grid; justify-items: center; align-content: center; gap: 2px; border: 1px solid var(--glass-border); border-radius: var(--radius-lg); background: var(--glass); color: var(--text); font-size: 12px; font-weight: 700; touch-action: manipulation; }
+.organize-btn:active { transform: scale(.97); }
+.organize-delete { color: var(--danger); border-color: rgba(255, 99, 99, .35); }
+.organize-favorite { color: var(--favorite); border-color: rgba(255, 120, 150, .35); }
+.organize-next { background-image: var(--accent-fill); color: var(--accent-ink); border-color: transparent; }

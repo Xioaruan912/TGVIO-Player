@@ -101,3 +101,14 @@ test("unfavouriting or a failed favourite never asks", async () => {
   await flush();
   assert.equal(sheets.length, 0, "an uninstalled offer no longer listens");
 });
+
+test("a favourite made in 整理模式 does not ask", async () => {
+  sheets.length = 0;
+  const root = document.createElement("main");
+  root.classList.add("organizing");
+  const uninstall = installFavoriteCollections({ root }, () => {}, new CollectionsController(fakeSource()));
+  settle("m5", true);
+  await flush();
+  assert.equal(sheets.length, 0);
+  uninstall();
+});

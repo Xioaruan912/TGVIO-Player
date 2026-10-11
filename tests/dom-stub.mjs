@@ -29,6 +29,8 @@ export function installDom() {
     set textContent(text) { this.text = text; this.replaceChildren(); }
     append(...children) { children.forEach(child => { child.remove(); child.parent = this; this.children.push(child); }); }
     appendChild(child) { this.append(child); return child; }
+    prepend(...children) { const kids = children.map(child => { child.remove(); child.parent = this; return child; }); this.children.unshift(...kids); }
+    after(...nodes) { const parent = this.parent; if (!parent) return; const kids = nodes.map(node => { node.remove(); node.parent = parent; return node; }); parent.children.splice(parent.children.indexOf(this) + 1, 0, ...kids); }
     replaceChildren(...children) { this.children.forEach(c => c.parent = null); this.children = []; this.append(...children); }
     remove() { if (globalThis.document && this.contains(globalThis.document.activeElement)) globalThis.document.activeElement = globalThis.document.body; if (this.parent) this.parent.children = this.parent.children.filter(c => c !== this); this.parent = null; }
     get parentElement() { return this.parent ?? null; }

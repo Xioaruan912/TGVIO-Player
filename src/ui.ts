@@ -43,6 +43,8 @@ export type Shell = {
   shuffleBtn: HTMLButtonElement;
   privacyLockBtn: HTMLButtonElement;
   groupBtn: HTMLButtonElement;
+  /** The 更多 menu's list; feature modules add their entries here. */
+  actionRail: HTMLElement;
   contextBackBtn: HTMLButtonElement;
   fullscreenBtn: HTMLButtonElement;
   navButtons: HTMLButtonElement[];
@@ -89,7 +91,7 @@ export function buildShell(handlers: ShellHandlers): Shell {
   const { topbar, contextBackBtn, netSpeed, fullscreenBtn } = buildAppHeader(handlers);
 
   const { panel: playerPanel, title, meta, seek, timeCurrent, timeTotal, playBtn,
-    favoriteBtn, soundBtn, shuffleBtn, privacyLockBtn, deleteBtn, groupBtn, downloadBtn
+    favoriteBtn, soundBtn, shuffleBtn, privacyLockBtn, deleteBtn, groupBtn, downloadBtn, actionRail
   } = buildPlayerPanel(root, handlers, netSpeed);
 
   const pauseIndicator = element("div", "pause-indicator");
@@ -144,6 +146,7 @@ export function buildShell(handlers: ShellHandlers): Shell {
     shuffleBtn,
     privacyLockBtn,
     groupBtn,
+    actionRail,
     contextBackBtn,
     fullscreenBtn,
     navButtons,

@@ -11,7 +11,8 @@ import type { CollectionDto } from "./types";
  *
  * The bottom sheet lists the hand-picked (manual) collections, makes a new one on the
  * spot, or is dismissed. Each collection keeps its members in its own storage folder,
- * so the choice is where the copy will live. Unfavouriting never asks anything.
+ * so the choice is where the copy will live. Unfavouriting never asks anything, and
+ * neither does a favourite made in 整理模式.
  */
 export function installFavoriteCollections(
   host: SheetHost,
@@ -22,7 +23,8 @@ export function installFavoriteCollections(
   const unsubscribe = favoriteMutations.subscribe(
     () => undefined,
     (mediaId, result) => {
-      if (result?.favorite) void offer(mediaId);
+      // 整理模式 favourites one clip per press; asking each time would stall it.
+      if (result?.favorite && !host.root?.classList.contains("organizing")) void offer(mediaId);
     },
   );
 

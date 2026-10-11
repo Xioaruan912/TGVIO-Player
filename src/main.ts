@@ -9,6 +9,7 @@ import { fillUniqueFeed } from "./feed-loading";
 import { favoriteMutations } from "./favorite-service";
 import { installFavoriteCollections } from "./favorite-collections";
 import { installWatchedTracker } from "./watched";
+import { installOrganize } from "./organize";
 import { ContextFeed } from "./context-feed";
 import { attachFullscreen } from "./fullscreen";
 import { attachGestures } from "./gestures";
@@ -1494,6 +1495,9 @@ function renderFeed(): void {
   shell = buildShell(handlers);
   installFavoriteCollections(shell, (message) => { if (shell) toast(shell, message); });
   installWatchedTracker(); attachIdleActivity(document, shortIdle);
+  installOrganize({ sheet: shell, root: shell.root, actionRail: shell.actionRail, panel: shell.playerPanel, favoriteButton: shell.favoriteBtn,
+    currentClip: () => feedView?.clipAt(activeIndex) ?? null, next: () => feedView?.scrollToIndex(activeIndex + 1, true),
+    removeClip: removeClientMedia, toggleFavorite: handlers.onToggleFavorite, notify: message => { if (shell) toast(shell, message); } });
   shell.root.addEventListener("playersheetclose", () => {
     openSheetKind = null;
     if (shell && !libraryPage && !longVideosOpen) setActiveNav(shell, contextFeed?.mode === "favorites" ? "favorites" : "home");

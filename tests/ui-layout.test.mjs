@@ -60,30 +60,20 @@ test("12px metadata keeps WCAG AA contrast on every surface it sits on", () => {
   assert.ok(contrast("#ffffff", tokens["danger-fill"]) >= 4.5, "white on the filled danger action");
 });
 
-test("the accent ink clears AA on every stop of the accent gradient", () => {
-  // A label on a gradient is only as legible as its weakest stop; axe cannot evaluate
-  // gradient backgrounds, so the declared stops are checked instead.
-  // On gold the ink is near-black; white would fail, so it must never be the ink.
-  assert.ok(contrast("#ffffff", stops(tokens["accent-fill"])[0]) < 4.5, "white is not a legible ink on the gold");
-  const accent = stops(tokens["accent-fill"]);
-  assert.ok(accent.length >= 3, "the accent gradient declares its stops");
-  for (const stop of accent) {
-    const ratio = contrast(tokens["accent-ink"], stop);
-    assert.ok(ratio >= 4.5, `--accent-ink on accent stop ${stop} is ${ratio.toFixed(2)}:1`);
-  }
+test("the accent ink clears AA on the flat accent fill", () => {
+  // Primary actions are one flat gold; on it the ink is near-black, white would fail.
+  assert.match(tokens["accent-fill"], /^#[0-9a-f]{6}$/i, "the accent fill is one solid colour");
+  assert.ok(contrast("#ffffff", tokens["accent-fill"]) < 4.5, "white is not a legible ink on the gold");
+  const ratio = contrast(tokens["accent-ink"], tokens["accent-fill"]);
+  assert.ok(ratio >= 4.5, `--accent-ink on the accent fill is ${ratio.toFixed(2)}:1`);
 });
 
-test("gradient headings stay readable and degrade to a visible colour", () => {
-  for (const stop of stops(tokens["heading-ink"])) {
-    for (const surface of ["bg", "surface"]) {
-      const ratio = contrast(stop, tokens[surface]);
-      assert.ok(ratio >= 4.5, `heading stop ${stop} on --${surface} is ${ratio.toFixed(2)}:1`);
-    }
+test("headings are plain readable ink, never clipped gradient text", () => {
+  for (const surface of ["bg", "surface"]) {
+    assert.ok(contrast(tokens["text"], tokens[surface]) >= 7, `heading ink on --${surface}`);
   }
-  // Clipped gradient text must never be able to end up invisible.
-  assert.match(glassCss, /@supports \(background-clip: text\)/);
-  assert.match(glassCss, /\.browse-title,[\s\S]*?\{\s*color: var\(--primary-bright\);\s*\}/);
-  assert.match(glassCss, /-webkit-text-fill-color: transparent/);
+  assert.match(glassCss, /\.browse-title,[\s\S]*?\{\s*color: var\(--text\);\s*\}/);
+  assert.doesNotMatch(glassCss, /-webkit-text-fill-color: transparent/, "no text can end up invisible");
 });
 
 test("the palette is dark and never falls back to a light surface", () => {
@@ -95,13 +85,14 @@ test("the palette is dark and never falls back to a light surface", () => {
 });
 
 test("the accent ink is the only label colour on an accent fill", () => {
-  const primaryRule = rules(glassCss).filter((rule) => rule.body.includes("background-image: var(--accent-fill)"));
+  const primaryRule = rules(glassCss).filter((rule) => rule.body.includes("background: var(--accent-fill)"));
   for (const selector of [".transport-play", ".large-play", ".login-submit", ".library-selection > .library-button:first-child"]) {
     const rule = primaryRule.find((candidate) => candidate.selector === selector);
     assert.ok(rule, "accent fill covers " + selector);
     assert.match(rule.body, /color:\s*var\(--accent-ink\)/, selector);
   }
-  assert.match(body(shellCss, ".desktop-nav .nav-btn.active"), /color:\s*var\(--accent-ink\)/);
+  // The active rail item is a gold tint, not a fill, so its label is gold ink.
+  assert.match(body(shellCss, ".desktop-nav .nav-btn.active"), /color:\s*var\(--primary-bright\)/);
 });
 
 test("the motion scale is spring based and collapses under reduced motion", () => {

@@ -136,7 +136,7 @@ const dayOf = (seconds: number): string => {
 };
 const megabytes = (bytes: number): number => Math.round(bytes / (1024 * 1024));
 const range = (low: number | null, high: number | null, unit: string): string => {
-  if (low !== null && high !== null) return `${low}–${high}${unit}`;
+  if (low !== null && high !== null) return `${low}-${high}${unit}`;
   return low !== null ? `≥${low}${unit}` : `≤${high}${unit}`;
 };
 
@@ -151,7 +151,7 @@ export function describeFilters(filters: LibraryFilters): string {
   const parts: string[] = [];
   if (filters.dateFrom !== null || filters.dateTo !== null) {
     if (filters.dateFrom !== null && filters.dateTo !== null) {
-      parts.push(`${dayOf(filters.dateFrom)}–${dayOf(filters.dateTo)}`);
+      parts.push(`${dayOf(filters.dateFrom)} 至 ${dayOf(filters.dateTo)}`);
     } else if (filters.dateFrom !== null) {
       parts.push(`自 ${dayOf(filters.dateFrom)}`);
     } else {

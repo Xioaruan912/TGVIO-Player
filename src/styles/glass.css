@@ -1,30 +1,45 @@
-/* Aurora Glass ambience.
-   The aurora is a few large, soft colour fields on the page background, never on
-   the picture: every media surface paints its own opaque background above it.
-   Glass surfaces and the gradient heading ink are composed here so the look can be
-   tuned in one place without touching the token or layout layers. */
+/* Graphite surfaces.
+   Pages sit on one flat warm-graphite background. Elevation is a step to a lighter
+   surface, never a glow. Frosted translucency is kept only for chrome that floats
+   on the picture or over moving content (dock, menus, toasts, scrub preview, the
+   long player's controls), where it is what keeps text readable over any frame. */
 
 .app-shell, .browse-page, .large-player, .login-shell {
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(60% 45% at 12% -8%, rgba(168, 120, 31, 0.22), transparent 70%),
-    radial-gradient(50% 40% at 100% 4%, rgba(120, 78, 20, 0.16), transparent 70%),
-    radial-gradient(70% 50% at 50% 110%, rgba(201, 162, 39, 0.14), transparent 72%);
-  background-repeat: no-repeat;
+  background: var(--bg);
 }
 
-/* One glass recipe for every floating surface. */
-/* Not the feed header: it floats on the picture and must never blur the frame. */
-/* Not the sheet card either: backdrop-filter makes an element the containing block
+/* A barely visible grain on the browse pages and the login, so large dark areas
+   do not read as flat digital black. Fixed parents only; never over the picture. */
+.browse-page::after, .login-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.browse-page > *, .login-shell > * { position: relative; z-index: 1; }
+
+/* Frosted only where something moves underneath. */
+/* Not the feed header: it floats on the picture and must never blur the frame.
+   Not the sheet card either: backdrop-filter makes an element the containing block
    of its fixed descendants, and the sheet's own backdrop already blurs the page. */
-.bottom-nav, .desktop-nav, .browse-header, .toast,
-.action-menu, .audio-warning-panel, .login-panel, .scrub-bubble, .large-controls,
-.library-selection, .settings-card {
+.bottom-nav, .desktop-nav, .toast, .action-menu, .audio-warning-panel,
+.scrub-bubble, .large-controls, .library-selection {
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
 }
 
-/* Primary actions carry the gradient and its glow; only white ink sits on it. */
+/* Solid surfaces on the browse pages and in sheets. */
+.browse-page .library-button, .browse-back, .library-segments, .collection-row,
+.settings-card, .sheet-row, .sheet-close, .login-panel, .long-resume-clear, .long-retry {
+  background-color: var(--surface);
+  box-shadow: none;
+}
+.browse-page.is-scrolled .browse-header { background: var(--bg); }
+
+/* Primary actions: one flat gold, dark ink, no sheen. */
 .logo,
 .transport-play,
 .large-play,
@@ -34,38 +49,26 @@
 .library-selection > .library-button:first-child,
 .storage-settings-actions button[type="submit"],
 .audio-warning-confirm {
-  background-image: var(--accent-fill);
+  background: var(--accent-fill);
   color: var(--accent-ink);
   box-shadow: var(--accent-glow);
 }
-/* The animated ones carry a light band above the gradient for motion.css to sweep. */
-.transport-play, .large-play, .login-submit, .large-privacy-play, .gesture-play {
-  background-image: linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, .26) 50%, transparent 62%), var(--accent-fill);
-  background-size: 240% 100%, 100% 100%;
-  background-repeat: no-repeat;
-}
 
-/* Gradient heading ink. The plain colour is the default, so the text stays
-   visible anywhere a clipped background cannot paint. */
+/* Headings are plain ink; hierarchy comes from size and weight. */
 .browse-title,
 .sheet-title,
 .login-title,
 .desktop-brand strong,
 .brand-name,
 .app-header-context {
-  color: var(--primary-bright);
+  color: var(--text);
 }
-@supports (background-clip: text) or (-webkit-background-clip: text) {
-  .browse-title,
-  .sheet-title,
-  .login-title,
-  .desktop-brand strong,
-  .brand-name,
-  .app-header-context {
-    background-image: var(--heading-ink);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+
+@media (prefers-reduced-transparency: reduce) {
+  .bottom-nav, .desktop-nav, .toast, .action-menu, .audio-warning-panel,
+  .scrub-bubble, .large-controls, .library-selection {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--glass-strong);
   }
 }

@@ -107,16 +107,15 @@
   transition: opacity 200ms ease, transform 200ms ease;
 }
 
-/* A gradient arc: a conic sweep masked down to a ring, glowing softly. */
+/* A single-colour arc: a conic sweep masked down to a ring. */
 .media-loading-ring {
   display: block;
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, rgba(168, 120, 31, 0) 0deg, #a8781f 120deg, #e6c35c 250deg, #ff6b81 340deg, rgba(255, 107, 129, 0) 360deg);
+  background: conic-gradient(from 0deg, rgba(var(--accent-rgb), 0) 0deg, rgba(var(--accent-rgb), .35) 140deg, var(--primary) 340deg, rgba(var(--accent-rgb), 0) 360deg);
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-  filter: drop-shadow(0 0 8px rgba(240, 200, 100, 0.55));
 
   animation: media-ring-turn .9s linear infinite;
   /* `visibility: hidden` does not stop an animation, and in a full feed nineteen of
@@ -192,4 +191,4 @@
 .organize-btn:active { transform: scale(.97); }
 .organize-delete { color: var(--danger); border-color: rgba(255, 99, 99, .35); }
 .organize-favorite { color: var(--favorite); border-color: rgba(255, 120, 150, .35); }
-.organize-next { background-image: var(--accent-fill); color: var(--accent-ink); border-color: transparent; }
+.organize-next { background: var(--accent-fill); color: var(--accent-ink); border-color: transparent; }

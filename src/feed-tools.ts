@@ -71,7 +71,7 @@ function heartAt(x: number, y: number): void {
 export function installFeedTools(host: FeedToolsHost): () => void {
   const organize = installOrganize(host);
   setFeedAdvance(host.next);
-  setFeedSourceHost({ sheet: host.sheet, enter: host.enterSource, leave: host.leaveSource });
+  setFeedSourceHost({ sheet: host.sheet, enter: host.enterSource, leave: host.leaveSource, notify: host.notify });
   const chip = feedSourceChip();
   // Beside the brand, in the header row the context back button shares.
   const brand = host.contextBack.parentElement?.querySelector(".topbar-brand") ?? host.contextBack;

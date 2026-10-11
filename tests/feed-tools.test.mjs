@@ -93,9 +93,9 @@ test("each source asks the wall for its own short clips, page by page", async ()
 });
 
 test("picking a source enters a context; 全部 leaves it; the chip follows", async () => {
-  const events = [];
+  const events = [], notes = [];
   const sheet = { sheet: { hidden: false } };
-  source.setFeedSourceHost({ sheet, enter: () => events.push("enter"), leave: () => events.push("leave") });
+  source.setFeedSourceHost({ sheet, enter: loader => events.push(["enter", loader]), leave: () => events.push("leave"), notify: m => notes.push(m) });
   const chip = source.feedSourceChip();
   assert.equal(chip.textContent, "全部 ▾");
   const client = fakeClient();
@@ -103,13 +103,23 @@ test("picking a source enters a context; 全部 leaves it; the chip follows", as
   const rows = sheets.at(-1).body.filter(n => n.className === "sheet-row-choice").map(r => r.textContent);
   assert.deepEqual(rows, ["全部", "新入库", "没看过", "#黑丝", "射了"], "fixed sources, tags, then collections (not the builtin)");
   sheets.at(-1).body.find(n => n.textContent === "#黑丝").dispatch("click");
-  assert.deepEqual(events, ["enter"]);
+  await flush();
+  assert.equal(events.length, 1);
   assert.equal(chip.textContent, "#黑丝 ▾");
+  const before = client.calls.length;
+  const firstPage = await events[0][1](null, undefined);
+  assert.equal(firstPage.items.length, 20);
+  assert.equal(client.calls.length, before, "the page read before entering is not fetched again");
   source.feedSourceEnded();
   assert.equal(chip.textContent, "全部 ▾", "the context's back button returns the chip to 全部");
-  source.playFeedSource({ kind: "collection", id: "x", name: "射了" }, client);
-  source.playFeedSource({ kind: "all" }, client);
-  assert.deepEqual(events, ["enter", "enter", "leave"]);
+  await source.playFeedSource({ kind: "collection", id: "x", name: "射了" }, client);
+  await source.playFeedSource({ kind: "all" }, client);
+  assert.deepEqual(events.slice(1).map(e => Array.isArray(e) ? e[0] : e), ["enter", "leave"]);
+  client.collectionItems = async () => ({ items: [], hasMore: false, nextCursor: null });
+  await source.playFeedSource({ kind: "collection", id: "x", name: "射了" }, client);
+  assert.deepEqual(notes, ["这个集合是空的"], "an empty source says so and the feed stays");
+  assert.equal(events.length, 3);
+  assert.equal(chip.textContent, "全部 ▾");
   source.setFeedSourceHost(null);
 });
 

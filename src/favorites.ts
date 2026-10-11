@@ -225,7 +225,7 @@ export class FavoritesPage {
       down.disabled = index < 0 || index >= this.collections.rows.length - 1;
       // Swipe through the collection in the feed, like the home page.
       const collection = this.collection;
-      const swipe = this.button("刷这个集合", () => playFeedSource({ kind: "collection", id: collection.collection_id, name: collection.name }));
+      const swipe = this.button("刷这个集合", () => void playFeedSource({ kind: "collection", id: collection.collection_id, name: collection.name }));
       swipe.classList.add("collection-swipe");
       this.toolbar.append(swipe);
       const back = this.button("返回集合", () => this.showCollections());

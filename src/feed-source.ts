@@ -1,7 +1,7 @@
 import { api } from "./api";
 import { element } from "./components/dom";
 import { openSheet, closeSheet, sheetChoice, sheetNote, sheetSection, type SheetHost } from "./components/sheet";
-import type { ContextPageLoader } from "./context-feed";
+import type { ContextPage, ContextPageLoader } from "./context-feed";
 import { emptyFilters, type LibraryFilters } from "./library-filters";
 import { tagApi } from "./tags";
 import type { CollectionDto } from "./types";
@@ -28,6 +28,7 @@ export type FeedSourceHost = {
   enter(loader: ContextPageLoader): void;
   /** Back to the shuffled deck. */
   leave(): void;
+  notify(message: string): void;
 };
 
 export type FeedSourceApi = {
@@ -90,11 +91,49 @@ export function sourceLoader(source: FeedSource, client: FeedSourceApi = default
   };
 }
 
-/** Play a source in the feed; "all" returns to the shuffled deck. */
-export function playFeedSource(source: FeedSource, client: FeedSourceApi = defaultApi): void {
-  if (!host) return;
-  if (source.kind === "all") host.leave();
-  else host.enter(sourceLoader(source, client));
+function emptyMessage(source: FeedSource): string {
+  switch (source.kind) {
+    case "new": return `最近 ${NEW_DAYS} 天没有新入库的短片`;
+    case "unwatched": return "短片都看过了";
+    case "tag": return "这个标签下还没有短片";
+    default: return "这个集合是空的";
+  }
+}
+
+/**
+ * Play a source in the feed; "all" returns to the shuffled deck. The first page is
+ * read before the feed changes: an empty source says so and leaves the feed as it
+ * was, instead of showing a feed with nothing in it. That page is then handed to
+ * the context as its first page, so it is not fetched twice.
+ */
+export async function playFeedSource(source: FeedSource, client: FeedSourceApi = defaultApi): Promise<void> {
+  const target = host;
+  if (!target) return;
+  if (source.kind === "all") {
+    target.leave();
+    announce(source);
+    return;
+  }
+  const loader = sourceLoader(source, client);
+  let first: ContextPage;
+  try {
+    first = await loader(null, new AbortController().signal);
+  } catch {
+    target.notify("读取失败，请稍后重试");
+    return;
+  }
+  if (!first.items.length) {
+    target.notify(emptyMessage(source));
+    return;
+  }
+  let served = false;
+  target.enter((cursor, signal) => {
+    if (cursor === null && !served) {
+      served = true;
+      return Promise.resolve(first);
+    }
+    return loader(cursor, signal);
+  });
   announce(source);
 }
 
@@ -106,7 +145,7 @@ export function feedSourceEnded(): void {
 export async function openFeedSourceSheet(client: FeedSourceApi = defaultApi): Promise<void> {
   const sheet = host?.sheet;
   if (!sheet) return;
-  const pick = (source: FeedSource) => (): void => { closeSheet(sheet); playFeedSource(source, client); };
+  const pick = (source: FeedSource) => (): void => { closeSheet(sheet); void playFeedSource(source, client); };
   const same = (source: FeedSource): boolean => JSON.stringify(source) === JSON.stringify(current);
   const fixed: Array<[FeedSource, string]> = [
     [{ kind: "all" }, "全部视频，随机"],

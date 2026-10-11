@@ -25,7 +25,10 @@ export type IconName =
   | "download"
   | "trash"
   | "check"
-  | "more";
+  | "more"
+  | "eye"
+  | "eye-off"
+  | "tag";
 
 type IconSpec = {
   paths: string[];
@@ -113,6 +116,22 @@ const SPECS: Record<IconName, IconSpec> = {
   },
   back: {
     paths: ["M14.5 5.5 8 12l6.5 6.5"],
+  },
+  eye: {
+    paths: ["M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"],
+    circles: [[12, 12, 3]],
+  },
+  "eye-off": {
+    paths: [
+      "M3.5 3.5l17 17",
+      "M10.4 5.7A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.8",
+      "M6.6 7.3C3.9 9.1 2.5 12 2.5 12S6 18.5 12 18.5a9.4 9.4 0 0 0 4.6-1.2",
+      "M9.9 9.9a3 3 0 0 0 4.2 4.2",
+    ],
+  },
+  tag: {
+    paths: ["M20.4 13.6 13.6 20.4a1.8 1.8 0 0 1-2.6 0L3.5 13V3.5H13l7.4 7.5a1.8 1.8 0 0 1 0 2.6Z"],
+    circles: [[8, 8, 1.4]],
   },
   lock: {
     paths: ["M5.5 10h13v10h-13z", "M8 10V7a4 4 0 0 1 8 0v3", "M12 14v2"],

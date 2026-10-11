@@ -1,5 +1,6 @@
 import { element } from "./dom";
 import { icon } from "../icons";
+import { coverRevealButton } from "../cover-privacy";
 
 export function browseButton(text: string, action: () => void): HTMLButtonElement {
   const button = element("button", "library-button", text);
@@ -25,7 +26,7 @@ export function buildBrowseFrame(options: {
   const eyebrow = element("span", "browse-eyebrow", options.subtitle);
   options.title.classList.add("browse-title");
   heading.append(eyebrow, options.title);
-  header.append(back, heading);
+  header.append(back, heading, coverRevealButton());
   root.append(header);
   for (const node of [options.toolbar, options.notice, options.selection, options.list]) if (node) root.append(node);
   options.list.tabIndex = -1;

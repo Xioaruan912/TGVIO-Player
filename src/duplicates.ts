@@ -9,6 +9,7 @@ import { element } from "./components/dom";
 import { buildCoverTile } from "./components/cover-tile";
 import { openSheet, sheetNote, sheetRow, type SheetHost } from "./components/sheet";
 import { deleteWithUndo, type DeletionResult } from "./media-deletion";
+import { forgetCoverReveal } from "./cover-privacy";
 import type { Clip, MediaDto } from "./types";
 
 type DuplicatesPayload = { groups: { items: MediaDto[] }[]; total: number };
@@ -92,6 +93,7 @@ export function buildDuplicateGroup(group: Clip[], source: DuplicateSource, done
 
 /** Fills the open sheet with the review; `back` returns to the settings. */
 export async function openDuplicateReview(host: SheetHost, back: () => void, source: DuplicateSource = duplicateApi): Promise<void> {
+  forgetCoverReveal(); // a page's shown covers are not this sheet's
   const backRow = sheetRow({ title: "返回设置", onPick: back });
   openSheet(host, "疑似重复", [backRow, sheetNote("正在比对封面和时长…")]);
   let page: DuplicateGroups;

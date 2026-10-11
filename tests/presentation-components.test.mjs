@@ -22,6 +22,7 @@ Object.assign(deps, await component("fx"));
 Object.assign(deps, await component("media-actions"));
 const { buildPlayerPanel } = await component("player-panel");
 const { buildLargePlayerView } = await component("large-player-view");
+deps.coverRevealButton = () => element("button", "cover-reveal"); // cover-privacy.ts is tested on its own
 const { buildBrowseFrame, fillDirectoryCard } = await component("browse-frame");
 let observer;
 globalThis.MutationObserver = class {

@@ -143,3 +143,10 @@
   .cover-tile-play:hover .cover-tile-image { transform: none; }
   .cover-tile button:active { scale: none; }
 }
+
+/* Covers blurred by default (cover-privacy.ts): the frame stays, the picture does not
+   read. Scaled so the blur has no hard edge inside the rounded frame. */
+.covers-private .cover-tile-image,
+.covers-private .cover-tile-play:hover .cover-tile-image { filter: blur(22px) saturate(.7) brightness(.85); transform: scale(1.18); }
+.browse-header .cover-reveal { margin-left: auto; min-width: 44px; padding: 8px 12px; display: grid; place-items: center; }
+.browse-header .cover-reveal[aria-pressed="true"] { color: var(--primary); }

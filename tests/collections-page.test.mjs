@@ -123,9 +123,9 @@ globalThis.__coverDeps.bindCoverImage = bindCoverImage;
 const { buildCoverTile } = await import("data:text/javascript;base64," + Buffer.from(
   "const { element, icon, bindCoverImage } = globalThis.__coverDeps; const enqueueCover = start => { start(() => {}); return () => {}; };\n" + await transpile("components/cover-tile.ts")).toString("base64"));
 
-globalThis.__frameDeps = { element, icon };
+globalThis.__frameDeps = { element, icon, coverRevealButton: () => element("button", "cover-reveal") };
 const { buildBrowseFrame, browseButton, fillDirectoryCard } = await import("data:text/javascript;base64," + Buffer.from(
-  "const { element, icon } = globalThis.__frameDeps;\n" + await transpile("components/browse-frame.ts")).toString("base64"));
+  "const { element, icon, coverRevealButton } = globalThis.__frameDeps;\n" + await transpile("components/browse-frame.ts")).toString("base64"));
 
 globalThis.__sheetDeps = { element, icon: () => document.createElement("span"), activateDialog: () => () => {}, animateArrival: () => {}, flingOut: async () => {}, settleFromVelocity: async () => {} };
 const sheetModule = await import("data:text/javascript;base64," + Buffer.from(

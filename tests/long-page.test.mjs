@@ -28,9 +28,9 @@ const { buildCoverTile } = await import("data:text/javascript;base64," + Buffer.
 const { resumableItems, omitResumableDuplicates } = await import(
   "data:text/javascript;base64," + Buffer.from(await transpile("long-video-list.ts")).toString("base64"));
 
-globalThis.__frameDeps = { element, icon };
+globalThis.__frameDeps = { element, icon, coverRevealButton: () => element("button", "cover-reveal") };
 const { buildBrowseFrame, browseButton, fillDirectoryCard } = await import("data:text/javascript;base64," + Buffer.from(
-  "const { element, icon } = globalThis.__frameDeps;\n" + await transpile("components/browse-frame.ts")).toString("base64"));
+  "const { element, icon, coverRevealButton } = globalThis.__frameDeps;\n" + await transpile("components/browse-frame.ts")).toString("base64"));
 
 const clip = (index, overrides = {}) => ({
   id: String(index).padStart(8, "0") + "a".repeat(56),

@@ -9,6 +9,7 @@ import { readModeLabel, syncReadMode } from "./network-sheets";
 import { api } from "../api";
 import { watchedForgetRow } from "../watched";
 import { openDuplicateReview } from "../duplicates";
+import { coverBlurRow } from "../cover-privacy";
 import type { SheetHost } from "../components/sheet";
 
 export type SettingsViewActions = {
@@ -180,6 +181,7 @@ export function buildSettingsView(actions: SettingsViewActions): Node[] {
   );
 
   body.push(sheetSection(SETTINGS_GROUP_DEVICE));
+  body.push(coverBlurRow(openSettings));
   if (typeof navigator !== "undefined" && "wakeLock" in navigator) body.push(sheetToggle(
     "长视频保持屏幕常亮",
     prefs.keepScreenAwake ? "播放时防止屏幕自动熄灭" : "已关闭，浏览器或系统可能自动熄屏",

@@ -10,6 +10,13 @@ export type GestureOptions = {
   duration: () => number;
   onTap?: () => void;
   onDoubleTap?: (direction: "backward" | "forward") => void;
+  /** A double tap in the middle third (e.g. a like); its single tap waits like the sides'. */
+  onDoubleTapCenter?: (clientX: number, clientY: number) => void;
+  isCenterDoubleTapEnabled?: () => boolean;
+  /** When on, a horizontal drag is a swipe (left/right) instead of a seek. */
+  isSwipeEnabled?: () => boolean;
+  onSwipeMove?: (dx: number) => void;
+  onSwipe?: (direction: "left" | "right") => void;
   onFastForward?: (speed: number | null) => void;
   onLevelStart?: (axis: LevelAxis) => boolean | void;
   onLevelMove?: (axis: LevelAxis, fraction: number) => void;
@@ -27,7 +34,8 @@ const DOUBLE_TAP_DISTANCE = 48;
  * Reels/Bilibili style gestures for a video surface:
  *  - short tap        -> onTap (play/pause)
  *  - long press       -> temporary fast-forward while held
- *  - horizontal drag  -> scrub
+ *  - horizontal drag  -> scrub, or a left/right swipe when the surface asks for swipes
+ *  - double tap       -> onDoubleTap on the outer thirds, onDoubleTapCenter in the middle
  *  - vertical drag    -> onLevel* when the surface opts in (brightness on the left half,
  *                        volume on the right); otherwise left to the scroller
  */
@@ -54,7 +62,9 @@ export function attachGestures(el: HTMLElement, opts: GestureOptions): () => voi
   let tapTimer = 0;
   let lastTapAt = 0;
   let lastTapX = 0;
-  let lastTapDirection: "backward" | "forward" | null = null;
+  let lastTapDirection: "backward" | "forward" | "center" | null = null;
+  let swiping = false;
+  let swipeDx = 0;
 
   const clearLong = () => {
     window.clearTimeout(longTimer);
@@ -88,6 +98,8 @@ export function attachGestures(el: HTMLElement, opts: GestureOptions): () => voi
     moved = false;
     longActive = false;
     scrubbing = false;
+    swiping = false;
+    swipeDx = 0;
     direction = null;
     startX = event.clientX;
     startY = event.clientY;
@@ -150,6 +162,17 @@ export function attachGestures(el: HTMLElement, opts: GestureOptions): () => voi
     }
     // Once native scrolling wins, this pointer cannot become a seek.
     if (direction !== "horizontal") return;
+    if (swiping || (!scrubbing && opts.isSwipeEnabled?.())) {
+      if (!swiping) {
+        swiping = true;
+        clearLong();
+        try { el.setPointerCapture(pointerId); } catch { /* ignore */ }
+      }
+      event.preventDefault();
+      swipeDx = dx;
+      opts.onSwipeMove?.(dx);
+      return;
+    }
     if (!scrubbing) {
       if (!opts.isDragSeekEnabled()) return;
       clearLong();
@@ -179,22 +202,33 @@ export function attachGestures(el: HTMLElement, opts: GestureOptions): () => voi
     if (!active || event.pointerId !== pointerId) return;
     const wasLong = longActive;
     const wasScrub = scrubbing;
+    const wasSwipe = swiping;
     const wasMoved = moved;
     const elapsed = Date.now() - startAt;
     active = false;
     clearLong();
     stopLong();
     endLevel();
-    if (wasScrub) endScrub(true);
+    if (wasSwipe) {
+      swiping = false;
+      const width = el.getBoundingClientRect().width;
+      opts.onSwipeMove?.(0);
+      // A deliberate swipe: a quarter of the surface, and never less than 80 px.
+      if (Math.abs(swipeDx) >= Math.max(80, width * 0.25)) opts.onSwipe?.(swipeDx < 0 ? "left" : "right");
+    } else if (wasScrub) endScrub(true);
     else if (!wasLong && !wasMoved && elapsed < 600) {
       const rect = el.getBoundingClientRect();
       const fraction = rect.width > 0 ? (event.clientX - rect.left) / rect.width : 0.5;
-      const tapDirection = fraction < 0.4 ? "backward" : fraction > 0.6 ? "forward" : null;
+      const tapDirection = fraction < 0.4 ? "backward" : fraction > 0.6 ? "forward" : "center";
       const now = Date.now();
-      if (opts.isDoubleTapEnabled?.() && tapDirection) {
+      const doubleEnabled = tapDirection === "center"
+        ? Boolean(opts.onDoubleTapCenter) && (opts.isCenterDoubleTapEnabled?.() ?? true)
+        : Boolean(opts.isDoubleTapEnabled?.());
+      if (doubleEnabled) {
         if (tapTimer && lastTapDirection === tapDirection && now - lastTapAt <= DOUBLE_TAP_MS && Math.abs(event.clientX - lastTapX) <= DOUBLE_TAP_DISTANCE) {
           clearTap();
-          opts.onDoubleTap?.(tapDirection);
+          if (tapDirection === "center") opts.onDoubleTapCenter?.(event.clientX, event.clientY);
+          else opts.onDoubleTap?.(tapDirection);
         } else {
           const pendingTap = !!tapTimer;
           clearTap();
@@ -222,6 +256,7 @@ export function attachGestures(el: HTMLElement, opts: GestureOptions): () => voi
 
   const cancel = () => {
     active = false;
+    if (swiping) { swiping = false; opts.onSwipeMove?.(0); }
     clearLong();
     stopLong();
     endLevel();

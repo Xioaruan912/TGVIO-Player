@@ -260,3 +260,34 @@ test("a mostly horizontal drag is still a scrub, not a level change", (t) => {
   assert.ok(Math.abs(calls.ends[0][0] - 90) < 1e-6, "the scrub landed at 90 seconds");
   assert.equal(calls.ends[0][1], true);
 });
+
+test("a double tap in the middle likes; a single middle tap still toggles playback", (t) => {
+  const likes = [];
+  const { calls, tap, advance } = setup(t, { onDoubleTapCenter: (x, y) => likes.push([x, y]) });
+  tap(150); advance(100); tap(152);
+  assert.deepEqual(likes, [[152, 100]]);
+  assert.equal(calls.taps, 0, "the two taps of a like are not play/pause taps");
+  tap(150); advance(300);
+  assert.equal(calls.taps, 1, "a lone middle tap plays or pauses after the double-tap window");
+});
+
+test("the middle double tap can be switched off", (t) => {
+  const likes = [];
+  const { calls, tap } = setup(t, { onDoubleTapCenter: () => likes.push(1), isCenterDoubleTapEnabled: () => false });
+  tap(150); tap(150);
+  assert.deepEqual(likes, []);
+  assert.equal(calls.taps, 2, "taps act at once when no double tap is listened for");
+});
+
+test("in swipe mode a horizontal drag swipes instead of seeking", (t) => {
+  const swipes = [], moves = [];
+  const { el, calls } = setup(t, { isSwipeEnabled: () => true, onSwipe: d => swipes.push(d), onSwipeMove: dx => moves.push(dx) });
+  el.send("pointerdown"); el.send("pointermove", { clientX: 60 }); el.send("pointerup", { clientX: 60 });
+  assert.deepEqual(swipes, ["left"]);
+  assert.equal(calls.starts, 0, "no seek starts");
+  assert.equal(moves.at(-1), 0, "the clip snaps back after the swipe");
+  el.send("pointerdown"); el.send("pointermove", { clientX: 190 }); el.send("pointerup", { clientX: 190 });
+  assert.deepEqual(swipes, ["left"], "a short drag (40 px) is not a swipe");
+  el.send("pointerdown"); el.send("pointermove", { clientX: 260 }); el.send("pointerup", { clientX: 260 });
+  assert.deepEqual(swipes, ["left", "right"]);
+});

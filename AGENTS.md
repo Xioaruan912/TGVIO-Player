@@ -21,6 +21,25 @@
 - `.env`、Token、Cookie、密码、用户媒体不得进入代码、fixture、截图或提交。
 - 交接记录写入 `docs/handoffs/YYYY-MM-DD-主题.md`；本文件只在长期规则变化时更新，不追加日志或线上版本号。
 
+## 代码地图（先按这里定位，再只读目标文件）
+
+入口 `src/main.ts` 装配外壳、三 video 池、导航与各页面（冻结债务，只减不增）；接口全部经 `src/api.ts`（`clipFromMedia` 把 MediaDto 转成 `Clip`，类型在 `types.ts`）。小功能模块直接用 `api.request`，不再往 api.ts 加方法。
+
+| 关注点 | 文件 |
+|---|---|
+| 短视频 Feed | feed.ts（页面列表）、player.ts（三个复用 video）、preload.ts、feed-loading.ts、context-feed.ts（收藏等非首页上下文） |
+| 长片/选片播放 | large.ts（长片播放器，冻结）+ components/large-player-view.ts（DOM）、library-playback.ts（收藏/片库连播、同组视频）、long.ts（长片列表与续播） |
+| 播放状态与手势 | playback-state.ts、seek-control.ts、gestures.ts、idle-privacy.ts、sound-policy.ts、quality.ts、playback-rate.ts |
+| 浏览页 | library.ts（片库）、favorites.ts（收藏）、collections.ts、library-filters.ts + components/filter-sheet.ts、components/cover-tile.ts / cover-image.ts / cover-masonry.ts |
+| 收藏与集合 | favorite-mutations.ts（每媒体最新意图）、favorite-service.ts、favorite-collections.ts（收藏后选集合） |
+| 删除与整理 | media-deletion.ts（唯一删除入口，带撤销）、duplicates.ts（疑似重复审核）、watched.ts（看过标记与期限设置） |
+| 设置 | views/settings-view.ts（设置页）、settings.ts（本地偏好 prefs）、settings-page.ts（WebDAV 与恢复）、views/network-sheets.ts |
+| 通用组件 | components/sheet.ts（底部面板）、dialog.ts、action-menu.ts、undo-toast.ts、ui.ts（外壳与兼容导出） |
+| 样式 | src/style.css 汇总 src/styles/*.css（browse、large、settings、sheet、feed…） |
+
+测试在 `tests/*.test.mjs`：用 `ts.transpileModule` 编译单个模块、去掉 import、经 `globalThis` 注入依赖，DOM 用 `tests/dom-stub.mjs`（不支持属性选择器，需要时在模块内用 Map 保存节点）。浏览器回归在 `tests/*-browser.smoke.mjs` 与 `tests/fixtures/`。
+新功能的常见路径：后端（TGVIO 仓库）先加接口与测试 → 这里新建模块 + 测试 → `npm run check` → 推送 main → TGVIO 改 `player-web.lock` 并发布。
+
 ## 2. 隔离边界
 
 - Player 与 Bot 独立进程、容器和数据库。不得读写 Bot 的 `data/state.sqlite3`，不得访问 Telegram session、BOT_TOKEN 或 Bot 下载卷。

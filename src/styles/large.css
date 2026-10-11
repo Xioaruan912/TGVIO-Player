@@ -132,7 +132,8 @@
   .library-playback .large-player[data-clip-category="short"] .large-action-row { flex-wrap: nowrap; justify-content: space-between; gap: 2px; }
   .library-playback .large-player[data-clip-category="short"] .large-action-row::before,
   .library-playback .large-player[data-clip-category="short"] .large-controls > .panel-cache,
-  .library-playback .large-player[data-clip-category="short"] .large-action-row .control-caption { display: none; }
+  .library-playback .large-player[data-clip-category="short"] .large-action-row .control-caption,
+  .library-playback .large-player[data-clip-category="short"] .large-more .media-actions-toggle > span { display: none; }
   .library-playback .large-player[data-clip-category="short"] .large-btn { min-width: 40px; min-height: 44px; padding: 2px 4px; }
   .library-playback .large-player[data-clip-category="short"] .large-play { width: 44px; height: 44px; min-width: 44px; margin-inline: 0; }
   .library-playback .large-player[data-clip-category="short"] .large-btn.large-quality { min-height: 36px; padding: 0 10px; }

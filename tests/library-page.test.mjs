@@ -66,9 +66,9 @@ const element = (tag, className, text) => {
 };
 const iconsJs = await transpile("icons.ts");
 const { icon } = await import("data:text/javascript;base64," + Buffer.from(iconsJs).toString("base64"));
-globalThis.__frameDeps = { element, icon };
+globalThis.__frameDeps = { element, icon, coverRevealButton: () => element("button", "cover-reveal") };
 const { buildBrowseFrame, browseButton, fillDirectoryCard } = await import("data:text/javascript;base64," + Buffer.from(
-  "const { element, icon } = globalThis.__frameDeps;\n" + await transpile("components/browse-frame.ts")).toString("base64"));
+  "const { element, icon, coverRevealButton } = globalThis.__frameDeps;\n" + await transpile("components/browse-frame.ts")).toString("base64"));
 
 globalThis.__coverDeps = { element, icon };
 const imageCode = await transpile("components/cover-image.ts");
@@ -393,7 +393,7 @@ test("the filter panel applies a draft and the toolbar reports the condition cou
  assert.equal(host.sheet.hidden, false, "the panel opens in the page's sheet");
  assert.equal(byClass(host.sheetBody, "filter-sheet").length, 1);
  const choices = byClass(host.sheetBody, "filter-tri-button");
- assert.equal(choices.length, 15, "three choices for each of four conditions and three date presets");
+ assert.equal(choices.length, 16, "three choices for each of four conditions, three date presets and 不限 for tags");
  for (const button of choices) assert.notEqual(button.getAttribute("aria-pressed"), null, "every control states its own state");
  triChoice(host.sheetBody, "有封面", "是").dispatch("click");
  assert.equal(triChoice(host.sheetBody, "有封面", "是").getAttribute("aria-pressed"), "true");

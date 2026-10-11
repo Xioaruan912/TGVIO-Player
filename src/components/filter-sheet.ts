@@ -5,10 +5,13 @@ import {
   type LibraryFilters,
   type SortOrder,
 } from "../library-filters";
+import { tagApi, type TagItem } from "../tags";
 
 export type FilterSheetOptions = {
   value: LibraryFilters;
   onApply: (next: LibraryFilters) => void;
+  /** The tags to offer; the server's list unless a test passes its own. */
+  loadTags?: () => Promise<Pick<TagItem, "id" | "name">[]>;
 };
 
 const SORTS: ReadonlyArray<readonly [SortOrder, string]> = [
@@ -180,6 +183,31 @@ export function buildFilterSheet(options: FilterSheetOptions): HTMLElement {
     for (const { button, sort } of sortChoices) button.setAttribute("aria-pressed", String(draft.sort === sort));
   });
 
+  // One tag at a time; the list arrives after the panel opens.
+  const tagGroup = element("div", "filter-tri-choices filter-tags");
+  tagGroup.setAttribute("role", "group");
+  tagGroup.setAttribute("aria-label", "标签");
+  const tagButtons: Array<{ button: HTMLButtonElement; id: number | null }> = [];
+  const addTag = (label: string, id: number | null): void => {
+    const button = element("button", "filter-tri-button", label);
+    button.type = "button";
+    button.addEventListener("click", () => { draft = { ...draft, tag: id }; syncAll(); });
+    tagGroup.append(button);
+    tagButtons.push({ button, id });
+  };
+  addTag("不限", null);
+  syncers.push(() => {
+    for (const { button, id } of tagButtons) button.setAttribute("aria-pressed", String(draft.tag === id));
+  });
+  void Promise.resolve()
+    .then(() => (options.loadTags ?? (() => tagApi.list()))())
+    .then(tags => {
+      for (const tag of tags) addTag(tag.name, tag.id);
+      if (!tags.length) tagGroup.append(element("span", "filter-tags-empty", "还没有标签，在视频的「更多 → 标签」里添加"));
+      syncAll();
+    })
+    .catch(() => undefined);
+
   const actions = element("div", "filter-actions");
   const reset = element("button", "library-button", "重置");
   reset.type = "button";
@@ -212,6 +240,8 @@ export function buildFilterSheet(options: FilterSheetOptions): HTMLElement {
     triRow("已收藏", "favorite", () => draft.favorite, value => { draft = { ...draft, favorite: value }; }),
     triRow("续播中", "resumable", () => draft.resumable, value => { draft = { ...draft, resumable: value }; }),
     triRow("未看过", "unwatched", () => draft.unwatched, value => { draft = { ...draft, unwatched: value }; }),
+    sheetSection("标签"),
+    tagGroup,
     sheetSection("排序"),
     ...sortRows,
     actions,

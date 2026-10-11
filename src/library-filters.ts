@@ -20,6 +20,8 @@ export type LibraryFilters = {
   favorite: boolean | null;
   resumable: boolean | null;
   unwatched: boolean | null;
+  /** One of the viewer's tags, by id. */
+  tag: number | null;
   sort: SortOrder;
   seed: number | null;
 };
@@ -34,6 +36,7 @@ const NUMERIC_FIELDS: ReadonlyArray<readonly [keyof LibraryFilters, string, bool
   ["maxSeconds", "max_seconds", false],
   ["minBytes", "min_bytes", true],
   ["maxBytes", "max_bytes", true],
+  ["tag", "tag", true],
 ];
 
 const FLAG_FIELDS: ReadonlyArray<readonly [keyof LibraryFilters, string]> = [
@@ -65,6 +68,7 @@ export function emptyFilters(): LibraryFilters {
     favorite: null,
     resumable: null,
     unwatched: null,
+    tag: null,
     sort: "newest",
     seed: null,
   };
@@ -80,6 +84,7 @@ export function filterCount(filters: LibraryFilters): number {
   if (filters.minSeconds !== null || filters.maxSeconds !== null) count += 1;
   if (filters.minBytes !== null || filters.maxBytes !== null) count += 1;
   for (const [field] of FLAG_FIELDS) if (filters[field] !== null) count += 1;
+  if (filters.tag !== null) count += 1;
   return count;
 }
 
@@ -167,6 +172,7 @@ export function describeFilters(filters: LibraryFilters): string {
   if (filters.favorite !== null) parts.push(filters.favorite ? "已收藏" : "未收藏");
   if (filters.resumable !== null) parts.push(filters.resumable ? "续播中" : "未续播");
   if (filters.unwatched !== null) parts.push(filters.unwatched ? "未看过" : "看过");
+  if (filters.tag !== null) parts.push("按标签");
   if (filters.sort !== "newest") parts.push(SORT_LABELS[filters.sort]);
   return parts.length ? parts.join(" · ") : "无条件";
 }

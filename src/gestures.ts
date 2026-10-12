@@ -212,9 +212,11 @@ export function attachGestures(el: HTMLElement, opts: GestureOptions): () => voi
     if (wasSwipe) {
       swiping = false;
       const width = el.getBoundingClientRect().width;
-      opts.onSwipeMove?.(0);
-      // A deliberate swipe: a quarter of the surface, and never less than 80 px.
+      // A deliberate swipe: a quarter of the surface, and never less than 80 px. The
+      // action is told first, so an exit animation can start from where the finger
+      // left the clip rather than from the centre.
       if (Math.abs(swipeDx) >= Math.max(80, width * 0.25)) opts.onSwipe?.(swipeDx < 0 ? "left" : "right");
+      opts.onSwipeMove?.(0);
     } else if (wasScrub) endScrub(true);
     else if (!wasLong && !wasMoved && elapsed < 600) {
       const rect = el.getBoundingClientRect();

@@ -32,6 +32,8 @@ export type OrganizeHost = {
   toggleFavorite(): void;
   notify(message: string): void;
   remove?: (target: DeletionTarget) => Promise<DeletionResult>;
+  /** Plays the clip's exit (delete) or acknowledgement (collect); resolves when the action may run. */
+  animateOut?: (kind: "delete" | "collect") => Promise<void> | void;
 };
 
 const KEY = "tgvio.player.organize";
@@ -114,19 +116,20 @@ export function installOrganize(host: OrganizeHost): OrganizeControls {
     counts.deleted += 1;
     showCounts();
     // The removal itself shows the next clip; an undo puts this one back and uncounts it.
-    void remove({
+    void Promise.resolve(host.animateOut?.("delete")).then(() => remove({
       mediaId: clip.id,
       remove: () => {
         const restore = host.removeClip(clip);
         return () => { counts.deleted = Math.max(0, counts.deleted - 1); showCounts(); restore(); };
       },
-    });
+    }));
   };
   deleteButton.addEventListener("click", deleteCurrent);
   const collectCurrent = (): void => {
     const clip = host.currentClip();
     if (!clip) return;
     asking = clip.id;
+    void host.animateOut?.("collect");
     if (!host.favoriteButton.classList.contains("selected")) {
       host.toggleFavorite(); // a confirmed favourite opens the 加入集合 sheet
       counts.favorited += 1;

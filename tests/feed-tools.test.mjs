@@ -124,6 +124,7 @@ test("picking a source enters a context; 全部 leaves it; the chip follows", as
 });
 
 globalThis.MutationObserver ??= class { observe() {} disconnect() {} };
+document.documentElement ??= document.createElement("html");
 test("a middle double tap only ever adds a favourite, and swipes act only in 整理模式", async () => {
   let organizing = false;
   const actions = [];
@@ -131,6 +132,7 @@ test("a middle double tap only ever adds a favourite, and swipes act only in 整
     element, icon: () => element("i"), sheetToggle: () => element("button"),
     feedSourceChip: () => element("button", "feed-source-chip"), feedSourceEnded: () => {}, setFeedSourceHost: () => {},
     setFeedAdvance: () => {},
+    installCoverMorph: () => () => {}, installCountRoll: () => () => {}, motionAllowed: () => false,
     installOrganize: () => ({ isOn: () => organizing, deleteCurrent: () => actions.push("delete"), collectCurrent: () => actions.push("collect"), uninstall: () => {} }),
   });
   const topbar = element("header");

@@ -6,6 +6,9 @@ import type { GestureOptions } from "./gestures";
 import { icon } from "./icons";
 import { installOrganize, type OrganizeHost } from "./organize";
 import { setFeedAdvance } from "./playback-ending";
+import { installCoverMorph } from "./cover-morph";
+import { installCountRoll } from "./count-roll";
+import { motionAllowed } from "./motion";
 
 export { advanceAfterEnd } from "./playback-ending";
 
@@ -32,6 +35,8 @@ type GestureTools = {
 };
 
 const LIKE_KEY = "tgvio.player.centerLike";
+const DECK_KEY = "tgvio.player.deck";
+const FLY_MS = 280;
 let tools: GestureTools | null = null;
 
 export function centerLikeEnabled(): boolean {
@@ -42,6 +47,20 @@ export function centerLikeRow(rerender: () => void): HTMLButtonElement {
   const enabled = centerLikeEnabled();
   return sheetToggle("双击中间收藏", enabled ? "双击画面中间收藏，并弹出加入集合" : "已关闭", enabled, () => {
     try { localStorage.setItem(LIKE_KEY, enabled ? "off" : "on"); } catch { /* this page only */ }
+    rerender();
+  });
+}
+
+export function deckEnabled(): boolean {
+  try { return localStorage.getItem(DECK_KEY) !== "off"; } catch { return true; }
+}
+
+/** 刷片翻卡: the leaving clip sinks back and dims as the next one slides over it. */
+export function deckRow(rerender: () => void): HTMLButtonElement {
+  const enabled = deckEnabled();
+  return sheetToggle("刷片翻卡效果", enabled ? "上下滑动时，旧视频缩小变暗，新视频盖上来" : "已关闭", enabled, () => {
+    try { localStorage.setItem(DECK_KEY, enabled ? "off" : "on"); } catch { /* this page only */ }
+    document.documentElement.classList.toggle("deck-off", enabled);
     rerender();
   });
 }
@@ -69,7 +88,28 @@ function heartAt(x: number, y: number): void {
 }
 
 export function installFeedTools(host: FeedToolsHost): () => void {
-  const organize = installOrganize(host);
+  document.documentElement.classList.toggle("deck-off", !deckEnabled());
+  // App-wide motion add-ons live here because this is the one install point the
+  // shell calls: covers grow into the player, list counts roll up.
+  const unmorph = installCoverMorph();
+  const unroll = installCountRoll();
+  const animateOut = (kind: "delete" | "collect"): Promise<void> => {
+    if (!motionAllowed()) return Promise.resolve();
+    const cls = kind === "delete" ? "fly-delete" : "fly-collect";
+    host.root.classList.add(cls);
+    if (kind === "collect") {
+      const rect = host.root.getBoundingClientRect();
+      heartAt(rect.left + rect.width / 2, rect.top + rect.height * 0.4);
+      window.setTimeout(() => host.root.classList.remove(cls), 420);
+      return Promise.resolve();
+    }
+    return new Promise(resolve => window.setTimeout(() => {
+      resolve();
+      // After the removal ran (queued first), so the next clip never shows flown away.
+      queueMicrotask(() => host.root.classList.remove(cls));
+    }, FLY_MS));
+  };
+  const organize = installOrganize({ ...host, animateOut });
   setFeedAdvance(host.next);
   setFeedSourceHost({ sheet: host.sheet, enter: host.enterSource, leave: host.leaveSource, notify: host.notify });
   const chip = feedSourceChip();
@@ -89,6 +129,7 @@ export function installFeedTools(host: FeedToolsHost): () => void {
     swipeEnabled: () => organize.isOn() && !locked(),
     swipeMove: dx => {
       host.root.style.setProperty("--swipe-x", `${dx}px`);
+      host.root.style.setProperty("--swipe-r", `${(dx / 22).toFixed(2)}deg`);
       host.root.classList.toggle("swiping", dx !== 0);
       host.root.classList.toggle("swipe-delete", dx < -40);
       host.root.classList.toggle("swipe-collect", dx > 40);
@@ -97,6 +138,8 @@ export function installFeedTools(host: FeedToolsHost): () => void {
   };
   return () => {
     tools = null;
+    unmorph();
+    unroll();
     watcher.disconnect();
     chip.remove();
     setFeedAdvance(null);

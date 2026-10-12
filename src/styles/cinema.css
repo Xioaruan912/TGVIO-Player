@@ -305,3 +305,89 @@ button.sheet-row:active { background: var(--glass-light); }
 
 /* Tabs answer a press: the label brightens as the red line slides under it. */
 .bottom-nav .nav-btn, .library-segments > .library-segment { transition: color var(--dur-base) var(--ease-out-quint); }
+
+/* ── 1. The cover grows into the player (cover-morph.ts) ─────────────────────
+   One shared name: the tapped cover frame in the old state, the player stage in
+   the new one. The rest of the page only cross-fades, quickly. */
+html.is-morphing .large-player { animation: none; }
+html.is-morphing .large-player .large-stage { view-transition-name: tgvio-morph; }
+::view-transition-group(tgvio-morph) { animation-duration: 460ms; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+::view-transition-old(tgvio-morph), ::view-transition-new(tgvio-morph) { height: 100%; object-fit: cover; animation-duration: 460ms; }
+html.is-morphing::view-transition-old(root) { animation: cine-fade-out 260ms ease both; }
+html.is-morphing::view-transition-new(root) { animation: fade-in 260ms ease both; }
+@keyframes cine-fade-out { to { opacity: 0; } }
+
+/* ── 2. Scroll-driven: covers rise into view with parallax inside the frame,
+   and the big title shrinks into the top bar as the list scrolls ──────────── */
+@keyframes cine-scroll-in { from { opacity: 0; transform: translateY(48px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes cine-parallax { from { translate: 0 -7%; } to { translate: 0 7%; } }
+@keyframes cine-header-collapse { to { min-height: calc(52px + var(--safe-top)); padding-bottom: 8px; } }
+@keyframes cine-heading-collapse { to { padding-top: 0; } }
+@keyframes cine-title-collapse { to { transform: translateX(36px) scale(.6); } }
+@keyframes cine-eyebrow-collapse { to { height: 0; opacity: 0; } }
+@supports (animation-timeline: view()) {
+  .cover-grid > .cover-tile:nth-child(n),
+  .directory-grid > .library-index-row:nth-child(n) {
+    animation: cine-scroll-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 85%;
+    animation-delay: 0s;
+  }
+  .cover-tile-image { scale: 1.16; animation: cine-parallax linear both; animation-timeline: view(); }
+  .browse-page { timeline-scope: --browse-list; }
+  .library-list, .long-list { scroll-timeline: --browse-list block; }
+  .browse-header { animation: cine-header-collapse linear both; animation-timeline: --browse-list; animation-range: 0px 120px; }
+  .browse-heading { animation: cine-heading-collapse linear both; animation-timeline: --browse-list; animation-range: 0px 120px; }
+  .browse-title {
+    transform-origin: 0 50%;
+    animation: cine-wipe 900ms var(--ease-out-quint) 80ms backwards, cine-title-collapse linear both;
+    animation-timeline: auto, --browse-list;
+    animation-range: normal, 0px 120px;
+  }
+  .browse-eyebrow {
+    height: 18px; overflow: hidden;
+    animation: cine-rise 600ms var(--ease-out-quint) 380ms backwards, cine-eyebrow-collapse linear both;
+    animation-timeline: auto, --browse-list;
+    animation-range: normal, 0px 60px;
+  }
+}
+
+/* ── 3. 刷片翻卡: the leaving clip sinks back and dims under the next ────────── */
+@keyframes cine-deck { to { transform: translateY(70%) scale(.84); } }
+@keyframes cine-deck-dim { to { opacity: .78; } }
+@supports (animation-timeline: view()) {
+  html:not(.deck-off) .feed > .video-page {
+    transform-origin: 50% 0%;
+    animation: cine-deck linear both;
+    animation-timeline: view();
+    animation-range: exit 0% exit 100%;
+  }
+  html:not(.deck-off) .feed > .video-page::after {
+    content: ""; position: absolute; inset: 0; z-index: 3; background: #000; opacity: 0; pointer-events: none;
+    animation: cine-deck-dim linear both;
+    animation-timeline: view();
+    animation-range: exit 0% exit 100%;
+  }
+}
+
+/* ── 4. 整理模式 cards: tilt under the finger, fly out on delete, bow on collect ─ */
+.app-shell.swiping video.is-current { transform: translateX(var(--swipe-x)) rotate(var(--swipe-r, 0deg)); transition: none; }
+.app-shell.fly-delete video.is-current {
+  transform: translateX(-140%) rotate(-24deg); opacity: 0;
+  transition: transform 280ms cubic-bezier(.55, 0, .75, .1), opacity 280ms ease-in;
+}
+.app-shell.fly-collect video.is-current { animation: cine-collect 420ms var(--ease-out-quint); }
+@keyframes cine-collect { 35% { transform: scale(.86); } 100% { transform: none; } }
+
+/* ── 5. Film grain on the browse pages and the login (one composited layer) ─── */
+@keyframes cine-grain {
+  0% { transform: translate(0, 0); } 17% { transform: translate(-3%, 2%); } 33% { transform: translate(2%, -4%); }
+  50% { transform: translate(-4%, -1%); } 67% { transform: translate(3%, 3%); } 83% { transform: translate(-1%, 4%); } 100% { transform: translate(0, 0); }
+}
+.browse-page, .login-shell { overflow: hidden; }
+.browse-page::before, .login-shell::before {
+  content: ""; position: absolute; inset: -40%; z-index: 0; pointer-events: none; opacity: .09;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: cine-grain 900ms steps(6) infinite;
+}
+.browse-page > *, .login-shell > * { position: relative; z-index: 1; }
